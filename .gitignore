@@ -1,5 +1,25 @@
-composer.phar
-/vendor/
+# Environment
+.env
+
+# Uploads (user files)
+uploads/
+storage/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Vendor (composer)
+vendor/
+
+# Config (əgər içində secret varsa)
+config.php
 
 # Commit your application's lock file https://getcomposer.org/doc/01-basic-usage.md#commit-your-composer-lock-file-to-version-control
 # You may choose to ignore a library lock file http://getcomposer.org/doc/02-libraries.md#lock-file
