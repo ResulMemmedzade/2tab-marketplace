@@ -39,6 +39,7 @@ if ($user_id) {
     height: 80px;
 }
 
+/* TOPBAR */
 .topbar {
     position: fixed;
     top: 0;
@@ -47,6 +48,7 @@ if ($user_id) {
     background: #fff;
     border-bottom: 1px solid #e5e7eb;
     z-index: 1000;
+    transition: transform 0.25s ease;
 }
 
 .topbar-inner {
@@ -58,13 +60,14 @@ if ($user_id) {
 
 /* LOGO */
 .brand img {
-    height: 60px;
+    height: 40px;
 }
 
 /* DESKTOP NAV */
 .topbar-nav-desktop {
     display: flex;
-    gap: 14px;
+    gap: 16px;
+    align-items: center;
 }
 
 .topbar-nav-desktop a {
@@ -73,6 +76,7 @@ if ($user_id) {
     font-weight: 600;
     padding: 8px 10px;
     border-radius: 8px;
+    transition: 0.2s;
 }
 
 .topbar-nav-desktop a:hover {
@@ -138,9 +142,6 @@ if ($user_id) {
         padding: 2px 6px;
         border-radius: 999px;
     }
-    .topbar {
-    transition: transform 0.25s ease;
-}
 }
 </style>
 
@@ -152,7 +153,7 @@ if ($user_id) {
             <img src="/2tab/logo.png" alt="2tab">
         </a>
 
-        <!-- DESKTOP -->
+        <!-- DESKTOP NAV -->
         <div class="topbar-nav-desktop">
             <a href="<?php echo $user_id ? '/2tab/dashboard.php' : '/2tab/login.php'; ?>">
                 <?php echo $user_id ? 'Hesabım' : 'Giriş'; ?>
@@ -167,11 +168,7 @@ if ($user_id) {
                 <?php endif; ?>
             </a>
 
-            <a href="/2tab/contact.php">
-    <img src="/2tab/assets/icons/contact.png" alt="Əlaqə" class="mobile-nav-icon">
-    <span class="mobile-nav-text">Əlaqə</span>
-    <span class="desktop-link-text">Əlaqə</span>
-</a>
+            <a href="/2tab/contact.php">Əlaqə</a>
 
             <?php if ($is_admin): ?>
                 <a href="/2tab/admin/dashboard.php">Admin</a>
@@ -218,6 +215,7 @@ if ($user_id) {
 </div>
 
 <div class="topbar-spacer"></div>
+
 <script>
 (function () {
     const topbar = document.querySelector('.topbar');
@@ -228,18 +226,14 @@ if ($user_id) {
     window.addEventListener('scroll', function () {
         const currentScrollY = window.scrollY;
 
-        // yuxarıda olanda həmişə görünsün
         if (currentScrollY <= 10) {
             topbar.style.transform = "translateY(0)";
             return;
         }
 
-        // aşağı scroll → gizlə
         if (currentScrollY > lastScrollY) {
             topbar.style.transform = "translateY(-100%)";
-        } 
-        // yuxarı scroll → göstər
-        else {
+        } else {
             topbar.style.transform = "translateY(0)";
         }
 
