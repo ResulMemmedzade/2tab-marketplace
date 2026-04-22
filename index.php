@@ -368,12 +368,12 @@ $userName = $_SESSION["name"] ?? "";
             </p>
 
             <div class="hero-actions">
-                <a href="/2tab/books.php" class="btn btn-primary">Kitablara bax</a>
+                <a href="/books.php" class="btn btn-primary">Kitablara bax</a>
 
                 <?php if ($isLoggedIn): ?>
-                    <a href="/2tab/add_book.php" class="btn btn-light">Kitab paylaş</a>
+                    <a href="/add_book.php" class="btn btn-light">Kitab paylaş</a>
                 <?php else: ?>
-                    <a href="/2tab/login.php?redirect=%2F2tab%2Fadd_book.php" class="btn btn-light">Kitab paylaş</a>
+                    <a href="/login.php?redirect=%2Fadd_book.php" class="btn btn-light">Kitab paylaş</a>
                 <?php endif; ?>
             </div>
         </div>
@@ -385,7 +385,7 @@ $userName = $_SESSION["name"] ?? "";
                 <h2>Son əlavə olunan kitablar</h2>
                 
             </div>
-            <a href="/2tab/books.php" class="btn btn-light">Hamısına bax</a>
+            <a href="/books.php" class="btn btn-light">Hamısına bax</a>
         </div>
 
         <?php if (count($latestBooks) > 0): ?>
@@ -396,7 +396,7 @@ $userName = $_SESSION["name"] ?? "";
         <div class="book-image-wrap">
             <img
                 class="book-image"
-                src="/2tab/image.php?file=<?php echo urlencode($book["image"]); ?>"
+                src="/image.php?file=<?php echo urlencode($book["image"]); ?>"
                 alt="Kitab şəkli"
             >
         </div>
@@ -415,7 +415,7 @@ $userName = $_SESSION["name"] ?? "";
     </div>
 
     <div class="book-actions">
-        <a href="/2tab/book.php?id=<?php echo (int)$book['id']; ?>" class="btn btn-light">Ətraflı bax</a>
+        <a href="/book.php?id=<?php echo (int)$book['id']; ?>" class="btn btn-light">Ətraflı bax</a>
     </div>
 </div>
                 <?php endforeach; ?>

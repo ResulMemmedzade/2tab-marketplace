@@ -149,29 +149,29 @@ if ($user_id) {
     <div class="topbar-inner">
 
         <!-- LOGO -->
-        <a href="/2tab/index.php" class="brand">
-            <img src="/2tab/logo.png" alt="2tab">
+        <a href="/index.php" class="brand">
+            <img src="/logo.png" alt="2tab">
         </a>
 
         <!-- DESKTOP NAV -->
         <div class="topbar-nav-desktop">
-            <a href="<?php echo $user_id ? '/2tab/dashboard.php' : '/2tab/login.php'; ?>">
+            <a href="<?php echo $user_id ? '/dashboard.php' : '/login.php'; ?>">
                 <?php echo $user_id ? 'Hesabım' : 'Giriş'; ?>
             </a>
 
-            <a href="/2tab/books.php">Kitablar</a>
+            <a href="/books.php">Kitablar</a>
 
-            <a href="/2tab/messages.php">
+            <a href="/messages.php">
                 Mesajlar
                 <?php if ($unreadMessageCount > 0): ?>
                     (<?php echo $unreadMessageCount; ?>)
                 <?php endif; ?>
             </a>
 
-            <a href="/2tab/contact.php">Əlaqə</a>
+            <a href="/contact.php">Əlaqə</a>
 
             <?php if ($is_admin): ?>
-                <a href="/2tab/admin/dashboard.php">Admin</a>
+                <a href="/admin/dashboard.php">Admin</a>
             <?php endif; ?>
         </div>
 
@@ -180,18 +180,18 @@ if ($user_id) {
     <!-- MOBILE NAV -->
     <div class="topbar-nav-mobile">
 
-        <a href="<?php echo $user_id ? '/2tab/dashboard.php' : '/2tab/login.php'; ?>">
-            <img src="/2tab/assets/icons/account.png">
+        <a href="<?php echo $user_id ? '/dashboard.php' : '/login.php'; ?>">
+            <img src="/assets/icons/account.png">
             <span><?php echo $user_id ? 'Hesabım' : 'Giriş'; ?></span>
         </a>
 
-        <a href="/2tab/books.php">
-            <img src="/2tab/assets/icons/books.png">
+        <a href="/books.php">
+            <img src="/assets/icons/books.png">
             <span>Kitablar</span>
         </a>
 
-        <a href="/2tab/messages.php">
-            <img src="/2tab/assets/icons/chat.png">
+        <a href="/messages.php">
+            <img src="/assets/icons/chat.png">
             <span>Mesajlar</span>
 
             <?php if ($unreadMessageCount > 0): ?>
@@ -199,14 +199,14 @@ if ($user_id) {
             <?php endif; ?>
         </a>
 
-        <a href="/2tab/contact.php">
-            <img src="/2tab/assets/icons/contact.png">
+        <a href="/contact.php">
+            <img src="/assets/icons/contact.png">
             <span>Əlaqə</span>
         </a>
 
         <?php if ($is_admin): ?>
-        <a href="/2tab/admin/dashboard.php">
-            <img src="/2tab/assets/icons/admin.png">
+        <a href="/admin/dashboard.php">
+            <img src="/assets/icons/admin.png">
             <span>Admin</span>
         </a>
         <?php endif; ?>

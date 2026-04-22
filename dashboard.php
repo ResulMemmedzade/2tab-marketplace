@@ -207,25 +207,25 @@ try {
             <div class="card">
                 <h3>Mənim kitablarım</h3>
                 <p>Yeni kitab əlavə et, öz elanlarını redaktə və idarə et.</p>
-                <a href="/2tab/mybooks.php" class="btn btn-primary">Aç</a>
+                <a href="/mybooks.php" class="btn btn-primary">Aç</a>
             </div>
 
             <div class="card">
                 <h3>Favorilərim</h3>
                 <p>Bəyəndiyin və sonra baxmaq istədiyin kitablar burada saxlanılır.</p>
-                <a href="/2tab/favorites.php" class="btn btn-light">Aç</a>
+                <a href="/favorites.php" class="btn btn-light">Aç</a>
             </div>
 
             <div class="card">
                 <h3>Kitablar</h3>
                 <p>Platformadakı bütün aktiv kitab elanlarına bax və axtarış et.</p>
-                <a href="/2tab/books.php" class="btn btn-light">Bax</a>
+                <a href="/books.php" class="btn btn-light">Bax</a>
             </div>
 
             <div class="card">
                 <h3>Çıxış</h3>
                 <p>Hesabından təhlükəsiz şəkildə çıxış et.</p>
-                <form method="POST" action="/2tab/logout.php" class="logout-form">
+                <form method="POST" action="/logout.php" class="logout-form">
                     <button type="submit" class="btn btn-danger">Çıxış et</button>
                 </form>
             </div>

@@ -19,7 +19,7 @@ function isSafeRedirect(string $redirect): bool
         return false;
     }
 
-    return str_starts_with($redirect, "/2tab/");
+    return str_starts_with($redirect, "/");
 }
 
 // artıq login olubsa redirect et

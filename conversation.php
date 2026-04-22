@@ -406,7 +406,7 @@ $stmt->execute([$conversationId, $currentUserId]);
 <body>
     <div class="chat-page">
         <div class="chat-header">
-            <a href="/2tab/messages.php" class="back-btn" aria-label="Mesajlara qayıt">←</a>
+            <a href="/messages.php" class="back-btn" aria-label="Mesajlara qayıt">←</a>
 
             <div class="chat-header-text">
                 <h1><?php echo e($otherUser["name"] ?? "İstifadəçi"); ?></h1>
@@ -557,7 +557,7 @@ $stmt->execute([$conversationId, $currentUserId]);
         sendBtn.disabled = true;
 
         try {
-            const response = await fetch("/2tab/send_message.php", {
+            const response = await fetch("/send_message.php", {
                 method: "POST",
                 body: formData,
                 headers: {

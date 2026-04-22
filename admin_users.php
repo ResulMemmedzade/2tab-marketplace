@@ -382,7 +382,7 @@ try {
 <?php require_once __DIR__ . '/includes/admin_topbar.php'; ?>
 
     <div class="container">
-        <a href="/2tab/admin.php" class="btn-back">← Geri qayıt</a>
+        <a href="/admin.php" class="btn-back">← Geri qayıt</a>
 
         <?php if (!empty($_SESSION['flash_success'])): ?>
             <div class="flash-success">
@@ -425,7 +425,7 @@ try {
                 </select>
 
                 <button type="submit" class="btn btn-primary">Axtar</button>
-                <a href="/2tab/admin_users.php" class="btn btn-light">Təmizlə</a>
+                <a href="/admin_users.php" class="btn btn-light">Təmizlə</a>
             </form>
         </div>
 

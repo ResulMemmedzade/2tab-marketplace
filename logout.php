@@ -35,5 +35,5 @@ session_start();
 session_regenerate_id(true);
 session_destroy();
 
-header("Location: /2tab/login.php");
+header("Location: /login.php");
 exit;

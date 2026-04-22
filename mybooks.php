@@ -410,7 +410,7 @@ if (isset($_GET['added']) && $_GET['added'] == '1') {
                     ?>
                     <div class="book-item">
                         <?php if (!empty($book["image"])): ?>
-                            <img class="book-image" src="/2tab/image.php?file=<?php echo urlencode($book["image"]); ?>" alt="Kitab şəkli">
+                            <img class="book-image" src="/image.php?file=<?php echo urlencode($book["image"]); ?>" alt="Kitab şəkli">
                         <?php else: ?>
                             <div class="no-image">Şəkil yoxdur</div>
                         <?php endif; ?>

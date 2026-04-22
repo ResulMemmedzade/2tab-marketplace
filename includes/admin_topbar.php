@@ -39,14 +39,14 @@ if (session_status() === PHP_SESSION_NONE) {
 </style>
 
 <div class="topbar">
-    <a href="/2tab/index.php" class="brand">
-        <img src="/2tab/logo.png" alt="2tab loqosu" class="brand-logo">
+    <a href="/index.php" class="brand">
+        <img src="/logo.png" alt="2tab loqosu" class="brand-logo">
     </a>
 
     <div>
-        <a href="/2tab/dashboard.php">Dashboard</a>
-        <a href="/2tab/admin_books.php">Kitablar</a>
-        <a href="/2tab/admin_users.php">İstifadəçilər</a>
-        <a href="/2tab/logout.php">Çıxış</a>
+        <a href="/dashboard.php">Dashboard</a>
+        <a href="/admin_books.php">Kitablar</a>
+        <a href="/admin_users.php">İstifadəçilər</a>
+        <a href="/logout.php">Çıxış</a>
     </div>
 </div>
