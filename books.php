@@ -150,38 +150,7 @@ try {
         color: #1e293b;
     }
 
-    .topbar {
-        background: #ffffff;
-        border-bottom: 1px solid #e2e8f0;
-        padding: 18px 30px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-    }
-
-    .topbar .brand {
-        font-size: 22px;
-        font-weight: bold;
-        color: #2563eb;
-    }
-
-    .topbar-nav {
-        display: flex;
-        gap: 16px;
-        flex-wrap: wrap;
-        align-items: center;
-    }
-
-    .topbar a {
-        text-decoration: none;
-        color: #334155;
-        font-weight: 600;
-    }
-
-    .topbar a:hover {
-        color: #2563eb;
-    }
+    
 
     .message-link {
         display: inline-flex;

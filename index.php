@@ -82,15 +82,7 @@ $userName = $_SESSION["name"] ?? "";
         color: #1e293b;
     }
 
-    .topbar {
-        background: #ffffff;
-        border-bottom: 1px solid #e2e8f0;
-        padding: 18px 30px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 20px;
-    }
+    
 
     .brand {
         font-size: 24px;

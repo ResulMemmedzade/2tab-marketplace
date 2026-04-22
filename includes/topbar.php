@@ -9,42 +9,34 @@ $user_id = $_SESSION["user_id"] ?? 0;
 $is_admin = false;
 
 if ($user_id) {
-    try {
-        $stmt = $pdo->prepare("SELECT role FROM users WHERE id = ?");
-        $stmt->execute([$user_id]);
-        $userRole = $stmt->fetchColumn();
+    $stmt = $pdo->prepare("SELECT role FROM users WHERE id = ?");
+    $stmt->execute([$user_id]);
+    $userRole = $stmt->fetchColumn();
 
-        if ($userRole === 'admin') {
-            $is_admin = true;
-        }
-    } catch (PDOException $e) {
-        error_log($e->getMessage());
+    if ($userRole === 'admin') {
+        $is_admin = true;
     }
 }
+
 $unreadMessageCount = 0;
 
 if ($user_id) {
-    try {
-        $stmt = $pdo->prepare("
-            SELECT COUNT(*) 
-            FROM messages m
-            JOIN conversations c ON m.conversation_id = c.id
-            WHERE m.sender_id != ?
-              AND m.is_read = 0
-              AND (c.user_one_id = ? OR c.user_two_id = ?)
-        ");
-        $stmt->execute([$user_id, $user_id, $user_id]);
-        $unreadMessageCount = (int)$stmt->fetchColumn();
-    } catch (PDOException $e) {
-        error_log($e->getMessage());
-        $unreadMessageCount = 0;
-    }
+    $stmt = $pdo->prepare("
+        SELECT COUNT(*) 
+        FROM messages m
+        JOIN conversations c ON m.conversation_id = c.id
+        WHERE m.sender_id != ?
+          AND m.is_read = 0
+          AND (c.user_one_id = ? OR c.user_two_id = ?)
+    ");
+    $stmt->execute([$user_id, $user_id, $user_id]);
+    $unreadMessageCount = (int)$stmt->fetchColumn();
 }
 ?>
 
 <style>
 .topbar-spacer {
-    height: 84px;
+    height: 80px;
 }
 
 .topbar {
@@ -52,272 +44,183 @@ if ($user_id) {
     top: 0;
     left: 0;
     width: 100%;
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
     z-index: 1000;
-    background: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
-    padding: 10px 18px;
+}
+
+.topbar-inner {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 16px;
-    box-sizing: border-box;
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    padding: 12px 18px;
 }
 
-.topbar.topbar-hidden {
-    transform: translateY(-100%);
+/* LOGO */
+.brand img {
+    height: 60px;
 }
 
-.topbar.topbar-scrolled {
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-}
-
-.brand {
-    display: inline-flex;
-    align-items: center;
-    text-decoration: none;
-    flex-shrink: 0;
-}
-
-.brand-logo {
-    height: 42px;
-    width: auto;
-    display: block;
-}
-
-.topbar-nav {
+/* DESKTOP NAV */
+.topbar-nav-desktop {
     display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-end;
+    gap: 14px;
 }
 
-.topbar a {
+.topbar-nav-desktop a {
     text-decoration: none;
-    color: #334155;
+    color: #374151;
     font-weight: 600;
-    font-size: 15px;
-    line-height: 1.2;
+    padding: 8px 10px;
+    border-radius: 8px;
 }
 
-.topbar a:hover {
-    color: #2563eb;
+.topbar-nav-desktop a:hover {
+    background: rgba(37, 99, 235, 0.08);
 }
 
-.topbar-nav a {
-    padding: 10px 12px;
-    border-radius: 10px;
-    white-space: nowrap;
-}
-
-.topbar-nav a:hover {
-    background: #f8fafc;
-}
-
-.message-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.message-badge {
-    min-width: 22px;
-    height: 22px;
-    padding: 0 7px;
-    border-radius: 999px;
-    background: #dc2626;
-    color: #ffffff;
-    font-size: 12px;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.mobile-nav-icon,
-.mobile-nav-text {
+/* MOBILE NAV */
+.topbar-nav-mobile {
     display: none;
 }
 
+/* MOBILE */
 @media (max-width: 768px) {
+
     .topbar-spacer {
-        height: 122px;
+        height: 120px;
     }
 
-    .topbar {
-        align-items: flex-start;
-        flex-direction: column;
-        padding: 10px 12px;
-        gap: 10px;
-    }
-
-    .brand {
-        width: 100%;
+    .topbar-inner {
         justify-content: center;
     }
 
-    .brand-logo {
-        height: 30px;
-        max-width: 100%;
-        object-fit: contain;
+    .topbar-nav-desktop {
+        display: none;
     }
 
-    .topbar-nav {
-        width: 100%;
+    .topbar-nav-mobile {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
-        align-items: stretch;
-        justify-content: stretch;
+        grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+        border-top: 1px solid #f1f5f9;
     }
 
-    .topbar-nav a {
+    .topbar-nav-mobile a {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        min-height: 58px;
-        padding: 8px 6px;
+        padding: 10px 4px;
+        text-decoration: none;
+        color: #374151;
         font-size: 11px;
-        text-align: center;
-        white-space: normal;
-        word-break: break-word;
-        background: #f8fafc;
-        color: #334155;
-        border-radius: 12px;
+        font-weight: 600;
         position: relative;
-        gap: 4px;
+        gap: 5px;
     }
 
-    .topbar-nav a:hover {
-        background: #f1f5f9;
+    .topbar-nav-mobile a:hover {
+        background: rgba(37, 99, 235, 0.08);
     }
 
-    .mobile-nav-icon {
-        display: block;
+    .topbar-nav-mobile img {
         width: 20px;
         height: 20px;
-        object-fit: contain;
-        flex-shrink: 0;
     }
 
-    .mobile-nav-text {
-        display: block;
-        font-size: 11px;
-        font-weight: 700;
-        line-height: 1.1;
-    }
-
-    .desktop-link-text {
-        display: none;
-    }
-
-    .message-link {
-        gap: 4px;
-    }
-
-    .message-badge {
-        min-width: 18px;
-        height: 18px;
-        padding: 0 5px;
-        font-size: 10px;
+    .badge {
         position: absolute;
         top: 4px;
-        right: 4px;
-    }
-}
-
-@media (max-width: 420px) {
-    .topbar-spacer {
-        height: 116px;
-    }
-
-    .topbar {
-        padding: 8px 10px;
-    }
-
-    .brand-logo {
-        height: 50px;
-    }
-
-    .topbar-nav {
-        gap: 6px;
-    }
-
-    .topbar-nav a {
-        min-height: 54px;
-        padding: 6px 4px;
-    }
-
-    .mobile-nav-icon {
-        width: 18px;
-        height: 18px;
-    }
-
-    .mobile-nav-text {
+        right: 10px;
+        background: #dc2626;
+        color: #fff;
         font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 999px;
     }
+    .topbar {
+    transition: transform 0.25s ease;
+}
 }
 </style>
 
-<div class="topbar" id="siteTopbar">
-    <a href="/2tab/index.php" class="brand">
-        <img src="/2tab/logo.png" alt="2tab loqosu" class="brand-logo">
-    </a>
+<div class="topbar">
+    <div class="topbar-inner">
 
-    <div class="topbar-nav">
-
-        <!-- Hesab -->
-        <a href="<?php echo $user_id ? '/2tab/dashboard.php' : '/2tab/login.php'; ?>">
-            <img src="/2tab/assets/icons/account.png" alt="Hesabım" class="mobile-nav-icon">
-            <span class="mobile-nav-text"><?php echo $user_id ? 'Hesabım' : 'Giriş'; ?></span>
-            <span class="desktop-link-text"><?php echo $user_id ? 'Hesabım' : 'Giriş'; ?></span>
+        <!-- LOGO -->
+        <a href="/2tab/index.php" class="brand">
+            <img src="/2tab/logo.png" alt="2tab">
         </a>
 
-        <!-- Kitablar -->
-        <a href="/2tab/books.php">
-            <img src="/2tab/assets/icons/books.png" alt="Kitablar" class="mobile-nav-icon">
-            <span class="mobile-nav-text">Kitablar</span>
-            <span class="desktop-link-text">Bütün kitablar</span>
-        </a>
+        <!-- DESKTOP -->
+        <div class="topbar-nav-desktop">
+            <a href="<?php echo $user_id ? '/2tab/dashboard.php' : '/2tab/login.php'; ?>">
+                <?php echo $user_id ? 'Hesabım' : 'Giriş'; ?>
+            </a>
 
-        <!-- Mesajlar -->
-        <?php if ($user_id): ?>
-            <a href="/2tab/messages.php" class="message-link">
-                <img src="/2tab/assets/icons/chat.png" alt="Mesajlar" class="mobile-nav-icon">
-                <span class="mobile-nav-text">Mesajlar</span>
-                <span class="desktop-link-text">Mesajlar</span>
+            <a href="/2tab/books.php">Kitablar</a>
 
+            <a href="/2tab/messages.php">
+                Mesajlar
                 <?php if ($unreadMessageCount > 0): ?>
-                    <span class="message-badge"><?php echo $unreadMessageCount; ?></span>
+                    (<?php echo $unreadMessageCount; ?>)
                 <?php endif; ?>
             </a>
-        <?php else: ?>
-            <a href="/2tab/login.php" class="message-link">
-                <img src="/2tab/assets/icons/chat.png" alt="Mesajlar" class="mobile-nav-icon">
-                <span class="mobile-nav-text">Mesajlar</span>
-                <span class="desktop-link-text">Giriş</span>
-            </a>
-        <?php endif; ?>
 
-        <!-- ADMIN PANEL -->
+            <a href="/2tab/contact.php">
+    <img src="/2tab/assets/icons/contact.png" alt="Əlaqə" class="mobile-nav-icon">
+    <span class="mobile-nav-text">Əlaqə</span>
+    <span class="desktop-link-text">Əlaqə</span>
+</a>
+
+            <?php if ($is_admin): ?>
+                <a href="/2tab/admin/dashboard.php">Admin</a>
+            <?php endif; ?>
+        </div>
+
+    </div>
+
+    <!-- MOBILE NAV -->
+    <div class="topbar-nav-mobile">
+
+        <a href="<?php echo $user_id ? '/2tab/dashboard.php' : '/2tab/login.php'; ?>">
+            <img src="/2tab/assets/icons/account.png">
+            <span><?php echo $user_id ? 'Hesabım' : 'Giriş'; ?></span>
+        </a>
+
+        <a href="/2tab/books.php">
+            <img src="/2tab/assets/icons/books.png">
+            <span>Kitablar</span>
+        </a>
+
+        <a href="/2tab/messages.php">
+            <img src="/2tab/assets/icons/chat.png">
+            <span>Mesajlar</span>
+
+            <?php if ($unreadMessageCount > 0): ?>
+                <span class="badge"><?php echo $unreadMessageCount; ?></span>
+            <?php endif; ?>
+        </a>
+
+        <a href="/2tab/contact.php">
+            <img src="/2tab/assets/icons/contact.png">
+            <span>Əlaqə</span>
+        </a>
+
         <?php if ($is_admin): ?>
-            <a href="/2tab/admin/dashboard.php">
-                <img src="/2tab/assets/icons/admin.png" alt="Admin" class="mobile-nav-icon">
-                <span class="mobile-nav-text">Admin</span>
-                <span class="desktop-link-text">Admin panel</span>
-            </a>
+        <a href="/2tab/admin/dashboard.php">
+            <img src="/2tab/assets/icons/admin.png">
+            <span>Admin</span>
+        </a>
         <?php endif; ?>
 
     </div>
 </div>
 
 <div class="topbar-spacer"></div>
-
 <script>
 (function () {
-    const topbar = document.getElementById('siteTopbar');
+    const topbar = document.querySelector('.topbar');
     if (!topbar) return;
 
     let lastScrollY = window.scrollY;
@@ -325,17 +228,19 @@ if ($user_id) {
     window.addEventListener('scroll', function () {
         const currentScrollY = window.scrollY;
 
+        // yuxarıda olanda həmişə görünsün
         if (currentScrollY <= 10) {
-            topbar.classList.remove('topbar-hidden');
-            topbar.classList.remove('topbar-scrolled');
-        } else {
-            topbar.classList.add('topbar-scrolled');
+            topbar.style.transform = "translateY(0)";
+            return;
+        }
 
-            if (currentScrollY > lastScrollY && currentScrollY > 80) {
-                topbar.classList.add('topbar-hidden');
-            } else {
-                topbar.classList.remove('topbar-hidden');
-            }
+        // aşağı scroll → gizlə
+        if (currentScrollY > lastScrollY) {
+            topbar.style.transform = "translateY(-100%)";
+        } 
+        // yuxarı scroll → göstər
+        else {
+            topbar.style.transform = "translateY(0)";
         }
 
         lastScrollY = currentScrollY;

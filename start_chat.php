@@ -2,6 +2,7 @@
 
 require_once "config.php";
 
+
 ensureCsrfToken();
 
 function isSafeRedirect(string $redirect): bool
