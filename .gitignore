@@ -1,7 +1,7 @@
-# Environment
+# Environment (VERY sensitive)
 .env
 
-# Uploads (user files)
+# Uploads (user-generated content)
 uploads/
 storage/
 
@@ -15,11 +15,14 @@ storage/
 .vscode/
 .idea/
 
-# Vendor (composer)
+# Dependencies
 vendor/
 
-# Config (əgər içində secret varsa)
+# Config (contains app structure + may expose internals)
 config.php
+
+# Keep this (IMPORTANT for app projects)
+# composer.lock
 
 # Commit your application's lock file https://getcomposer.org/doc/01-basic-usage.md#commit-your-composer-lock-file-to-version-control
 # You may choose to ignore a library lock file http://getcomposer.org/doc/02-libraries.md#lock-file
