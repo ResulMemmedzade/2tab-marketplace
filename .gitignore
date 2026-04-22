@@ -1,13 +1,14 @@
-# ENV
+# Environment (VERY sensitive)
 .env
 
-# Logs
-/storage/logs/
-*.log
-
-# Uploads (əgər project daxilindədirsə)
+# Uploads (user-generated content)
 uploads/
+storage/
 2tab_uploads/
+
+# Logs
+*.log
+/storage/logs/
 
 # OS files
 .DS_Store
@@ -23,11 +24,15 @@ Thumbs.db
 *.old
 *.backup
 
-# Composer (əgər istifadə etsən)
+# Dependencies
 vendor/
-
-# Node (əgər əlavə etsən)
 node_modules/
 
 # Cache
 .cache/
+
+# Config (contains app structure + may expose internals)
+config.php
+
+# Keep this tracked for app projects:
+# composer.lock
