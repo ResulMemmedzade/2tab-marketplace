@@ -164,27 +164,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             color: #1e293b;
         }
 
-        .topbar {
-            background: #ffffff;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 18px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .topbar .brand {
-            font-size: 22px;
-            font-weight: bold;
-            color: #2563eb;
-        }
-
-        .topbar a {
-            text-decoration: none;
-            margin-left: 16px;
-            color: #334155;
-            font-weight: 600;
-        }
+        
 
         .container {
             max-width: 1000px;
@@ -335,11 +315,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 grid-template-columns: 1fr;
             }
 
-            .topbar {
-                flex-direction: column;
-                gap: 12px;
-                align-items: flex-start;
-            }
+            
         }
     </style>
 </head>
@@ -366,7 +342,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <input type="hidden" name="id" value="<?php echo (int)$book['id']; ?>">
 
                 <?php if (!empty($book["image"])): ?>
-                    <img class="book-image" src="/2tab/image.php?file=<?php echo urlencode($book["image"]); ?>" alt="Kitab şəkli">
+                    <img class="book-image" src="<?php echo basePath('image.php'); ?>?file=<?php echo urlencode($book["image"]); ?>" alt="Kitab şəkli">
                 <?php endif; ?>
 
                 <div class="form-group">
@@ -469,7 +445,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <button type="submit" class="btn">Yenilə</button>
             </form>
 
-            <a class="back-link" href="/2tab/mybooks.php">← Geri qayıt</a>
+            <a class="back-link" href="<?php echo basePath('mybooks.php'); ?>">← Geri qayıt</a>
         </div>
     </div>
 
