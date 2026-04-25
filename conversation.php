@@ -90,9 +90,7 @@ $stmt->execute([$conversationId, $currentUserId]);
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Mesajlaşma - 2tab</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         html, body {
             margin: 0;
@@ -123,8 +121,6 @@ $stmt->execute([$conversationId, $currentUserId]);
             padding: 16px 18px;
             background: #ffffff;
             border-bottom: 1px solid #e2e8f0;
-            position: sticky;
-            top: 0;
             z-index: 30;
         }
 
@@ -142,13 +138,9 @@ $stmt->execute([$conversationId, $currentUserId]);
             flex-shrink: 0;
         }
 
-        .back-btn:hover {
-            background: #eff6ff;
-        }
+        .back-btn:hover { background: #eff6ff; }
 
-        .chat-header-text {
-            min-width: 0;
-        }
+        .chat-header-text { min-width: 0; }
 
         .chat-header-text h1 {
             margin: 0;
@@ -179,7 +171,7 @@ $stmt->execute([$conversationId, $currentUserId]);
             min-height: 0;
             overflow-y: auto;
             overflow-x: hidden;
-            padding: 18px 18px 138px;
+            padding: 18px;
             display: flex;
             flex-direction: column;
             gap: 16px;
@@ -194,13 +186,8 @@ $stmt->execute([$conversationId, $currentUserId]);
             width: 100%;
         }
 
-        .message-row.mine {
-            justify-content: flex-end;
-        }
-
-        .message-row.other {
-            justify-content: flex-start;
-        }
+        .message-row.mine { justify-content: flex-end; }
+        .message-row.other { justify-content: flex-start; }
 
         .message-bubble {
             max-width: min(72%, 520px);
@@ -225,6 +212,12 @@ $stmt->execute([$conversationId, $currentUserId]);
             border-bottom-left-radius: 6px;
         }
 
+        .message-bubble.image-bubble {
+            width: fit-content;
+            max-width: min(82%, 280px);
+            padding: 8px;
+        }
+
         .message-meta {
             font-size: 12px;
             margin-bottom: 8px;
@@ -235,18 +228,9 @@ $stmt->execute([$conversationId, $currentUserId]);
             align-items: center;
         }
 
-        .message-author {
-            font-weight: 700;
-        }
-
-        .message-time {
-            opacity: 0.92;
-        }
-
-        .message-status {
-            opacity: 0.9;
-            font-size: 12px;
-        }
+        .message-author { font-weight: 700; }
+        .message-time { opacity: 0.92; }
+        .message-status { opacity: 0.9; font-size: 12px; }
 
         .chat-image {
             display: block;
@@ -256,6 +240,57 @@ $stmt->execute([$conversationId, $currentUserId]);
             height: auto;
             border-radius: 12px;
             object-fit: contain;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        .message-actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .message-action-btn {
+            border: none;
+            border-radius: 9px;
+            padding: 6px 9px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .edit-btn {
+            background: rgba(255, 255, 255, 0.22);
+            color: #ffffff;
+        }
+
+        .delete-btn {
+            background: rgba(239, 68, 68, 0.95);
+            color: #ffffff;
+        }
+
+        .edit-box {
+            display: none;
+            margin-top: 8px;
+        }
+
+        .edit-box textarea {
+            width: 100%;
+            min-height: 70px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.45);
+            padding: 10px;
+            font-size: 14px;
+            color: #0f172a;
+            background: #fff;
+            resize: vertical;
+        }
+
+        .edit-box-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
         }
 
         .empty-chat {
@@ -278,8 +313,6 @@ $stmt->execute([$conversationId, $currentUserId]);
             background: #ffffff;
             border-top: 1px solid #e2e8f0;
             padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
-            position: sticky;
-            bottom: 0;
             z-index: 25;
         }
 
@@ -397,9 +430,7 @@ $stmt->execute([$conversationId, $currentUserId]);
             overflow-y: auto;
         }
 
-        textarea::placeholder {
-            color: #64748b;
-        }
+        textarea::placeholder { color: #64748b; }
 
         .send-btn {
             width: 46px;
@@ -419,9 +450,7 @@ $stmt->execute([$conversationId, $currentUserId]);
             transition: transform 0.15s ease, opacity 0.15s ease;
         }
 
-        .send-btn:hover {
-            transform: translateY(-1px);
-        }
+        .send-btn:hover { transform: translateY(-1px); }
 
         .send-btn:disabled {
             opacity: 0.7;
@@ -429,14 +458,48 @@ $stmt->execute([$conversationId, $currentUserId]);
             transform: none;
         }
 
-        @media (max-width: 768px) {
-            .chat-page {
-                background: #ffffff;
-            }
+        .image-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            background: rgba(15, 23, 42, 0.92);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
 
-            .chat-header {
-                padding: 12px 14px;
-            }
+        .image-modal.is-open {
+            display: flex;
+        }
+
+        .image-modal img {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 12px;
+            background: #000;
+        }
+
+        .image-modal-close {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            width: 42px;
+            height: 42px;
+            border: none;
+            border-radius: 50%;
+            background: #ffffff;
+            color: #0f172a;
+            font-size: 22px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .chat-page { background: #ffffff; }
+
+            .chat-header { padding: 12px 14px; }
 
             .back-btn {
                 width: 38px;
@@ -444,21 +507,19 @@ $stmt->execute([$conversationId, $currentUserId]);
                 font-size: 22px;
             }
 
-            .chat-header-text h1 {
-                font-size: 18px;
-            }
-
-            .chat-header-text p {
-                font-size: 12px;
-            }
+            .chat-header-text h1 { font-size: 18px; }
+            .chat-header-text p { font-size: 12px; }
 
             .chat-messages {
-                padding: 14px 14px 130px;
+                padding: 14px;
                 gap: 12px;
             }
 
-            .message-bubble {
-                max-width: 85%;
+            .message-bubble { max-width: 85%; }
+
+            .message-bubble.image-bubble {
+                max-width: 78%;
+                padding: 7px;
             }
 
             .chat-image {
@@ -498,93 +559,127 @@ $stmt->execute([$conversationId, $currentUserId]);
     </style>
 </head>
 <body>
-    <div class="chat-page">
-        <div class="chat-header">
-            <a href="/messages.php" class="back-btn" aria-label="Mesajlara qayıt">←</a>
+<div class="chat-page">
+    <div class="chat-header">
+        <a href="/messages.php" class="back-btn" aria-label="Mesajlara qayıt">←</a>
 
-            <div class="chat-header-text">
-                <h1><?php echo e($otherUser["name"] ?? "İstifadəçi"); ?></h1>
-                <p>Mesajlaşmanı buradan davam etdirə bilərsiniz.</p>
-            </div>
-        </div>
-
-        <div class="chat-body">
-            <div class="chat-messages" id="chatMessages">
-                <?php if (count($messages) > 0): ?>
-                    <?php foreach ($messages as $msg): ?>
-                        <?php
-                            $isMine = (int)$msg["sender_id"] === $currentUserId;
-                            $messageType = $msg["message_type"] ?? "text";
-                            $messageStatus = ((int)($msg["is_read"] ?? 0) === 1) ? "Oxundu ✓✓" : "Göndərildi ✓";
-                        ?>
-                        <div class="message-row <?php echo $isMine ? 'mine' : 'other'; ?>">
-                            <div class="message-bubble">
-                                <div class="message-meta">
-                                    <span class="message-author"><?php echo e($msg["name"] ?? "İstifadəçi"); ?></span>
-                                    <span>•</span>
-                                    <span class="message-time"><?php echo e(formatRelativeTime($msg["created_at"] ?? "")); ?></span>
-                                    <?php if ($isMine): ?>
-                                        <span>•</span>
-                                        <span class="message-status"><?php echo e($messageStatus); ?></span>
-                                    <?php endif; ?>
-                                </div>
-
-                                <?php if ($messageType === "image"): ?>
-                                    <img
-                                        src="<?php echo e(basePath('uploads/' . ltrim((string)$msg["message"], '/'))); ?>"
-                                        class="chat-image"
-                                        alt="Göndərilən şəkil"
-                                    >
-                                <?php else: ?>
-                                    <div><?php echo nl2br(e($msg["message"])); ?></div>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <div class="empty-chat" id="emptyChat">
-                        <strong>Hələ mesaj yoxdur</strong>
-                        İlk mesajı siz yazın.
-                    </div>
-                <?php endif; ?>
-            </div>
-
-            <div class="chat-form-wrap">
-                <div class="alert-error" id="chatError"><?php echo $error ? e($error) : ''; ?></div>
-
-                <div class="image-preview" id="imagePreview">
-                    <img src="" alt="Seçilən şəkil" id="previewImage">
-                    <div class="image-preview-info">
-                        <div class="image-preview-title">Şəkil seçildi</div>
-                        <div class="image-preview-name" id="previewName"></div>
-                    </div>
-                    <div class="preview-actions">
-                        <button type="button" class="preview-btn preview-send" id="sendImageBtn">Göndər</button>
-                        <button type="button" class="preview-btn preview-cancel" id="cancelImageBtn">Ləğv et</button>
-                    </div>
-                </div>
-
-                <form method="POST" id="chatForm" class="chat-form">
-                    <input type="hidden" name="conversation_id" value="<?php echo (int)$conversationId; ?>">
-                    <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
-
-                    <div class="input-shell">
-                        <textarea
-                            name="message"
-                            id="messageInput"
-                            placeholder="Mesajınızı yazın..."
-                            required
-                        ></textarea>
-
-                        <input type="file" id="chatImage" style="display:none;" accept="image/*">
-
-                        <button type="button" class="send-btn" id="imageBtn" aria-label="Şəkil">📎</button>
-                        <button type="button" class="send-btn" id="sendBtn" aria-label="Göndər">➤</button>
-                    </div>
-                </form>
-            </div>
+        <div class="chat-header-text">
+            <h1><?php echo e($otherUser["name"] ?? "İstifadəçi"); ?></h1>
+            <p>Mesajlaşmanı buradan davam etdirə bilərsiniz.</p>
         </div>
     </div>
+
+    <div class="chat-body">
+        <div class="chat-messages" id="chatMessages">
+            <?php if (count($messages) > 0): ?>
+                <?php foreach ($messages as $msg): ?>
+                    <?php
+                        $isMine = (int)$msg["sender_id"] === $currentUserId;
+                        $messageType = $msg["message_type"] ?? "text";
+                        $messageStatus = ((int)($msg["is_read"] ?? 0) === 1) ? "Oxundu ✓✓" : "Göndərildi ✓";
+                        $bubbleClass = $messageType === "image" ? "message-bubble image-bubble" : "message-bubble";
+                    ?>
+                    <div class="message-row <?php echo $isMine ? 'mine' : 'other'; ?>">
+                        <div class="<?php echo e($bubbleClass); ?>">
+                            <div class="message-meta">
+                                <span class="message-author"><?php echo e($msg["name"] ?? "İstifadəçi"); ?></span>
+                                <span>•</span>
+                                <span class="message-time"><?php echo e(formatRelativeTime($msg["created_at"] ?? "")); ?></span>
+                                <?php if ($isMine): ?>
+                                    <span>•</span>
+                                    <span class="message-status"><?php echo e($messageStatus); ?></span>
+                                <?php endif; ?>
+                            </div>
+
+                            <?php if ($messageType === "image"): ?>
+                                <img
+                                    src="<?php echo e(basePath('uploads/' . ltrim((string)$msg["message"], '/'))); ?>"
+                                    class="chat-image js-full-image"
+                                    alt="Göndərilən şəkil"
+                                >
+                            <?php else: ?>
+                                <div class="message-text"><?php echo nl2br(e($msg["message"])); ?></div>
+
+                                <?php if ($isMine): ?>
+                                    <div class="edit-box" id="editBox<?php echo (int)$msg["id"]; ?>">
+                                        <form method="POST" action="<?php echo e(basePath('edit_message.php')); ?>">
+                                            <input type="hidden" name="csrf_token" value="<?php echo e(csrfToken()); ?>">
+                                            <input type="hidden" name="message_id" value="<?php echo (int)$msg["id"]; ?>">
+                                            <textarea name="message" required><?php echo e($msg["message"]); ?></textarea>
+                                            <div class="edit-box-actions">
+                                                <button type="submit" class="message-action-btn edit-btn">Yadda saxla</button>
+                                                <button type="button" class="message-action-btn delete-btn js-cancel-edit" data-edit-box="editBox<?php echo (int)$msg["id"]; ?>">Bağla</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                <?php endif; ?>
+                            <?php endif; ?>
+
+                            <?php if ($isMine): ?>
+                                <div class="message-actions">
+                                    <?php if ($messageType === "text"): ?>
+                                        <button type="button" class="message-action-btn edit-btn js-edit-btn" data-edit-box="editBox<?php echo (int)$msg["id"]; ?>">Edit</button>
+                                    <?php endif; ?>
+
+                                    <form method="POST" action="<?php echo e(basePath('delete_message.php')); ?>" onsubmit="return confirm('Bu mesaj silinsin?');">
+                                        <input type="hidden" name="csrf_token" value="<?php echo e(csrfToken()); ?>">
+                                        <input type="hidden" name="message_id" value="<?php echo (int)$msg["id"]; ?>">
+                                        <button type="submit" class="message-action-btn delete-btn">Sil</button>
+                                    </form>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="empty-chat" id="emptyChat">
+                    <strong>Hələ mesaj yoxdur</strong>
+                    İlk mesajı siz yazın.
+                </div>
+            <?php endif; ?>
+        </div>
+
+        <div class="chat-form-wrap">
+            <div class="alert-error" id="chatError"><?php echo $error ? e($error) : ''; ?></div>
+
+            <div class="image-preview" id="imagePreview">
+                <img src="" alt="Seçilən şəkil" id="previewImage">
+                <div class="image-preview-info">
+                    <div class="image-preview-title">Şəkil seçildi</div>
+                    <div class="image-preview-name" id="previewName"></div>
+                </div>
+                <div class="preview-actions">
+                    <button type="button" class="preview-btn preview-send" id="sendImageBtn">Göndər</button>
+                    <button type="button" class="preview-btn preview-cancel" id="cancelImageBtn">Ləğv et</button>
+                </div>
+            </div>
+
+            <form method="POST" id="chatForm" class="chat-form">
+                <input type="hidden" name="conversation_id" value="<?php echo (int)$conversationId; ?>">
+                <input type="hidden" name="csrf_token" value="<?php echo e(csrfToken()); ?>">
+
+                <div class="input-shell">
+                    <textarea
+                        name="message"
+                        id="messageInput"
+                        placeholder="Mesajınızı yazın..."
+                        required
+                    ></textarea>
+
+                    <input type="file" id="chatImage" style="display:none;" accept="image/*">
+
+                    <button type="button" class="send-btn" id="imageBtn" aria-label="Şəkil">📷</button>
+                    <button type="button" class="send-btn" id="sendBtn" aria-label="Göndər">➤</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="image-modal" id="imageModal">
+    <button type="button" class="image-modal-close" id="closeImageModal">×</button>
+    <img src="" alt="Tam ekran şəkil" id="modalImage">
+</div>
 
 <script>
 const chatMessages = document.getElementById("chatMessages");
@@ -592,7 +687,6 @@ const chatForm = document.getElementById("chatForm");
 const messageInput = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
 const chatError = document.getElementById("chatError");
-const emptyChat = document.getElementById("emptyChat");
 
 const imageBtn = document.getElementById("imageBtn");
 const chatImage = document.getElementById("chatImage");
@@ -601,6 +695,10 @@ const previewImage = document.getElementById("previewImage");
 const previewName = document.getElementById("previewName");
 const sendImageBtn = document.getElementById("sendImageBtn");
 const cancelImageBtn = document.getElementById("cancelImageBtn");
+
+const imageModal = document.getElementById("imageModal");
+const modalImage = document.getElementById("modalImage");
+const closeImageModal = document.getElementById("closeImageModal");
 
 let selectedImageFile = null;
 let selectedImagePreviewUrl = null;
@@ -688,23 +786,44 @@ function appendMessage(messageHtml, timeText, authorName, statusText = "Göndər
 }
 
 function appendImageMessage(imageUrl, timeText, authorName, statusText = "Göndərildi ✓") {
+    if (!chatMessages) return;
+
+    removeEmptyChat();
+
     const safeUrl = escapeHtml(imageUrl);
-    appendMessage(
-        `<img src="${safeUrl}" class="chat-image" alt="Göndərilən şəkil">`,
-        timeText,
-        authorName,
-        statusText
-    );
+
+    const row = document.createElement("div");
+    row.className = "message-row mine";
+
+    const bubble = document.createElement("div");
+    bubble.className = "message-bubble image-bubble";
+
+    const meta = document.createElement("div");
+    meta.className = "message-meta";
+    meta.innerHTML = `
+        <span class="message-author">${escapeHtml(authorName)}</span>
+        <span>•</span>
+        <span class="message-time">${escapeHtml(timeText)}</span>
+        <span>•</span>
+        <span class="message-status">${escapeHtml(statusText)}</span>
+    `;
+
+    const img = document.createElement("img");
+    img.src = safeUrl;
+    img.className = "chat-image js-full-image";
+    img.alt = "Göndərilən şəkil";
+
+    bubble.appendChild(meta);
+    bubble.appendChild(img);
+    row.appendChild(bubble);
+    chatMessages.appendChild(row);
+
+    scrollToBottom(true);
 }
 
 function keepComposerVisible() {
-    setTimeout(() => {
-        scrollToBottom(true);
-    }, 80);
-
-    setTimeout(() => {
-        scrollToBottom(true);
-    }, 220);
+    setTimeout(() => scrollToBottom(true), 80);
+    setTimeout(() => scrollToBottom(true), 220);
 }
 
 function clearImagePreview() {
@@ -715,21 +834,10 @@ function clearImagePreview() {
         selectedImagePreviewUrl = null;
     }
 
-    if (chatImage) {
-        chatImage.value = "";
-    }
-
-    if (previewImage) {
-        previewImage.src = "";
-    }
-
-    if (previewName) {
-        previewName.textContent = "";
-    }
-
-    if (imagePreview) {
-        imagePreview.style.display = "none";
-    }
+    if (chatImage) chatImage.value = "";
+    if (previewImage) previewImage.src = "";
+    if (previewName) previewName.textContent = "";
+    if (imagePreview) imagePreview.style.display = "none";
 }
 
 async function sendMessage() {
@@ -742,7 +850,6 @@ async function sendMessage() {
     }
 
     const formData = new FormData(chatForm);
-
     sendBtn.disabled = true;
 
     try {
@@ -784,7 +891,7 @@ async function sendSelectedImage() {
     const formData = new FormData();
     formData.append("image", selectedImageFile);
     formData.append("conversation_id", <?php echo (int)$conversationId; ?>);
-    formData.append("csrf_token", "<?= e(csrfToken()) ?>");
+    formData.append("csrf_token", "<?php echo e(csrfToken()); ?>");
 
     if (sendImageBtn) {
         sendImageBtn.disabled = true;
@@ -823,22 +930,16 @@ window.addEventListener("load", function () {
     hideError();
     scrollToBottom(true);
     autoResizeTextarea();
-    keepComposerVisible();
 });
 
 if (messageInput) {
     messageInput.addEventListener("input", function () {
         autoResizeTextarea();
         hideError();
-        keepComposerVisible();
     });
 
     messageInput.addEventListener("focus", function () {
-        keepComposerVisible();
-    });
-
-    messageInput.addEventListener("click", function () {
-        keepComposerVisible();
+        setTimeout(() => scrollToBottom(true), 250);
     });
 }
 
@@ -893,7 +994,7 @@ if (imageBtn && chatImage) {
         previewName.textContent = file.name;
         imagePreview.style.display = "flex";
 
-        keepComposerVisible();
+        setTimeout(() => scrollToBottom(true), 150);
     });
 }
 
@@ -909,6 +1010,50 @@ if (cancelImageBtn) {
     });
 }
 
+document.querySelectorAll(".js-edit-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+        const editBoxId = btn.dataset.editBox;
+        const editBox = document.getElementById(editBoxId);
+        if (editBox) {
+            editBox.style.display = editBox.style.display === "block" ? "none" : "block";
+        }
+    });
+});
+
+document.querySelectorAll(".js-cancel-edit").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+        const editBoxId = btn.dataset.editBox;
+        const editBox = document.getElementById(editBoxId);
+        if (editBox) {
+            editBox.style.display = "none";
+        }
+    });
+});
+
+document.addEventListener("click", function (event) {
+    const img = event.target.closest(".js-full-image");
+    if (!img || !imageModal || !modalImage) return;
+
+    modalImage.src = img.src;
+    imageModal.classList.add("is-open");
+});
+
+if (closeImageModal) {
+    closeImageModal.addEventListener("click", function () {
+        imageModal.classList.remove("is-open");
+        modalImage.src = "";
+    });
+}
+
+if (imageModal) {
+    imageModal.addEventListener("click", function (event) {
+        if (event.target === imageModal) {
+            imageModal.classList.remove("is-open");
+            modalImage.src = "";
+        }
+    });
+}
+
 if (chatForm) {
     chatForm.addEventListener("submit", function (event) {
         event.preventDefault();
@@ -916,12 +1061,13 @@ if (chatForm) {
 }
 
 window.addEventListener("resize", function () {
-    keepComposerVisible();
+    setTimeout(() => scrollToBottom(true), 150);
 });
 
 if (window.visualViewport) {
-    window.visualViewport.addEventListener("resize", keepComposerVisible);
-    window.visualViewport.addEventListener("scroll", keepComposerVisible);
+    window.visualViewport.addEventListener("resize", function () {
+        setTimeout(() => scrollToBottom(true), 180);
+    });
 }
 </script>
 </body>
