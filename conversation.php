@@ -1092,7 +1092,7 @@ async function sendSelectedImage() {
     try {
         const localPreviewUrl = selectedImagePreviewUrl;
 
-        const response = await fetch("<?php echo e(basePath('upload_chat_image.php')); ?>", {
+        const response = await fetch("<?php echo e(basePath('send_chat_image.php')); ?>", {
             method: "POST",
             body: formData,
             headers: {

@@ -1,77 +1,106 @@
 <?php
+
 require_once "config.php";
 
+requireLogin();
 ensureCsrfToken();
 
-if (!isLoggedIn()) {
-    http_response_code(403);
-    exit("Unauthorized");
+header("Content-Type: application/json; charset=utf-8");
+
+function responseJson($success, $message, $extra = [])
+{
+    echo json_encode(array_merge([
+        "success" => $success,
+        "message" => $message
+    ], $extra));
+    exit;
 }
 
-verifyCsrfToken($_POST["csrf_token"] ?? null);
+try {
+    verifyCsrfToken($_POST["csrf_token"] ?? null);
 
-$conversation_id = (int)($_POST["conversation_id"] ?? 0);
-$user_id = currentUserId();
+    $conversationId = (int)($_POST["conversation_id"] ?? 0);
+    $userId = currentUserId();
 
-if (!$conversation_id || !isset($_FILES['image'])) {
-    exit("Invalid request");
+    if ($conversationId <= 0 || !isset($_FILES["image"])) {
+        responseJson(false, "Invalid request");
+    }
+
+    $stmt = $GLOBALS["pdo"]->prepare("
+        SELECT id
+        FROM conversations
+        WHERE id = ?
+          AND (user_one_id = ? OR user_two_id = ?)
+        LIMIT 1
+    ");
+    $stmt->execute([$conversationId, $userId, $userId]);
+
+    if (!$stmt->fetch()) {
+        responseJson(false, "Access denied");
+    }
+
+    $file = $_FILES["image"];
+
+    if ($file["error"] !== UPLOAD_ERR_OK) {
+        responseJson(false, "Upload error");
+    }
+
+    if ($file["size"] > 10 * 1024 * 1024) {
+        responseJson(false, "Max 10MB");
+    }
+
+    $uploadDir = __DIR__ . "/uploads/chat/";
+
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0755, true);
+    }
+
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mime = finfo_file($finfo, $file["tmp_name"]);
+    finfo_close($finfo);
+
+    $allowedMimeTypes = [
+        "image/jpeg" => "jpg",
+        "image/png"  => "png",
+        "image/webp" => "webp"
+    ];
+
+    if (!isset($allowedMimeTypes[$mime])) {
+        responseJson(false, "Invalid file type");
+    }
+
+    $extension = $allowedMimeTypes[$mime];
+    $filename = bin2hex(random_bytes(16)) . "." . $extension;
+
+    $targetPath = $uploadDir . $filename;
+
+    if (!move_uploaded_file($file["tmp_name"], $targetPath)) {
+        responseJson(false, "Şəkil serverə yüklənə bilmədi");
+    }
+
+    $dbPath = "chat/" . $filename;
+
+    $stmt = $pdo->prepare("
+        INSERT INTO messages (conversation_id, sender_id, message, message_type)
+        VALUES (?, ?, ?, 'image')
+    ");
+    $stmt->execute([$conversationId, $userId, $dbPath]);
+
+    $messageId = (int)$pdo->lastInsertId();
+
+    $pdo->prepare("
+        UPDATE conversations
+        SET last_message_at = NOW()
+        WHERE id = ?
+    ")->execute([$conversationId]);
+
+    responseJson(true, "Şəkil göndərildi", [
+        "message_id" => $messageId,
+        "image_url" => basePath("uploads/" . $dbPath),
+        "time" => "indi"
+    ]);
+
+} catch (Throwable $e) {
+    error_log($e->getMessage());
+    responseJson(false, "Server xətası");
 }
-
-// 🔐 Conversation access yoxla
-$stmt = $pdo->prepare("
-    SELECT id FROM conversations
-    WHERE id = ?
-      AND (user_one_id = ? OR user_two_id = ?)
-");
-$stmt->execute([$conversation_id, $user_id, $user_id]);
-
-if (!$stmt->fetch()) {
-    exit("Access denied");
-}
-
-// 📦 File yoxlaması
-$file = $_FILES['image'];
-
-if ($file['error'] !== UPLOAD_ERR_OK) {
-    exit("Upload error");
-}
-
-if ($file['size'] > 5 * 1024 * 1024) {
-    exit("Max 5MB");
-}
-
-// MIME check
-$finfo = finfo_open(FILEINFO_MIME_TYPE);
-$mime = finfo_file($finfo, $file['tmp_name']);
-finfo_close($finfo);
-
-$allowed = ['image/jpeg', 'image/png', 'image/webp'];
-
-if (!in_array($mime, $allowed)) {
-    exit("Invalid file type");
-}
-
-// 📁 Save file
-$ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-$filename = uniqid("chat_", true) . "." . $ext;
-
-$uploadPath = __DIR__ . "/uploads/chat/" . $filename;
-
-move_uploaded_file($file['tmp_name'], $uploadPath);
-
-// 💾 DB insert
-$stmt = $pdo->prepare("
-    INSERT INTO messages (conversation_id, sender_id, message, message_type)
-    VALUES (?, ?, ?, 'image')
-");
-$stmt->execute([$conversation_id, $user_id, "chat/" . $filename]);
-
-// update last_message_at
-$pdo->prepare("
-    UPDATE conversations
-    SET last_message_at = NOW()
-    WHERE id = ?
-")->execute([$conversation_id]);
-
-// redirect back
-redirect(basePath("conversation.php?id=" . $conversation_id));
