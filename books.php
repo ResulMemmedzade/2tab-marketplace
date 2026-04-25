@@ -394,6 +394,7 @@ try {
     border-radius: 999px;
     font-size: 13px;
     font-weight: 700;
+    white-space: nowrap;
 }
 
 .book-condition {
@@ -534,6 +535,22 @@ try {
             font-size: 13px;
         }
     }
+    @media (max-width: 520px) {
+    .book-price {
+        margin-bottom: 6px;
+    }
+
+    .book-condition {
+        display: block;
+    }
+
+    .badge {
+        display: inline-block;
+        width: auto;
+        max-width: 100%;
+        white-space: nowrap;
+    }
+}
 </style>
 </head>
 <body>

@@ -407,13 +407,14 @@ if ($currentUserId) {
     .price-row {
         flex-direction: column;
         align-items: flex-start;
-        gap: 8px;
+        gap: 6px;
     }
 
     .badge {
         display: inline-block;
         width: auto;
         max-width: 100%;
+        white-space: nowrap;
         font-size: 13px;
         padding: 7px 12px;
     }
