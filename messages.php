@@ -49,6 +49,13 @@ try {
                 ORDER BY m.created_at DESC, m.id DESC
                 LIMIT 1
             ) AS last_message,
+             (
+    SELECT m.message_type
+    FROM messages m
+    WHERE m.conversation_id = c.id
+    ORDER BY m.created_at DESC, m.id DESC
+    LIMIT 1
+) AS last_message_type,
             (
                 SELECT COUNT(*)
                 FROM messages m2
@@ -243,9 +250,16 @@ try {
             <div class="chat-list">
                 <?php foreach ($conversations as $chat): ?>
                     <?php
-                    $preview = trim((string)($chat["last_message"] ?? ""));
-                    if ($preview !== "" && mb_strlen($preview) > 90) {
-                        $preview = mb_substr($preview, 0, 90) . "...";
+                    $lastMessageType = $chat["last_message_type"] ?? "text";
+
+                    if ($lastMessageType === "image") {
+                        $preview = "Şəkil göndərildi";
+                    } else {
+                        $preview = trim((string)($chat["last_message"] ?? ""));
+                    
+                        if ($preview !== "" && mb_strlen($preview) > 90) {
+                            $preview = mb_substr($preview, 0, 90) . "...";
+                        }
                     }
                     ?>
                     <a class="chat-card" href="<?= e(basePath('conversation.php?id=' . (int)$chat["id"])) ?>">
@@ -263,16 +277,12 @@ try {
                         </div>
 
                         <div class="chat-footer">
-                            <div class="chat-email">
-                                <?php echo e($chat["other_user_email"] ?? ""); ?>
-                            </div>
-
-                            <?php if ((int)$chat["unread_count"] > 0): ?>
-                                <span class="unread-badge">
-                                    <?php echo (int)$chat["unread_count"]; ?> yeni mesaj
-                                </span>
-                            <?php endif; ?>
-                        </div>
+    <?php if ((int)$chat["unread_count"] > 0): ?>
+        <span class="unread-badge">
+            <?php echo (int)$chat["unread_count"]; ?> yeni mesaj
+        </span>
+    <?php endif; ?>
+</div>
                     </a>
                 <?php endforeach; ?>
             </div>
