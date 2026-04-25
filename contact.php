@@ -1,6 +1,9 @@
 <?php
-session_start();
-$user_id = $_SESSION['user_id'] ?? null;
+require_once "config.php";
+
+ensureCsrfToken();
+
+$user_id = currentUserId();
 ?>
 
 <!DOCTYPE html>
@@ -227,12 +230,12 @@ $user_id = $_SESSION['user_id'] ?? null;
                 </div>
                 <div class="arrow">›</div>
             </a>
-             
             <?php if ($user_id): ?>
-    <form method="POST" action="/start_chat.php" style="margin-top:16px;">
+    <form method="POST" action="<?= e(basePath('start_chat.php')) ?>" style="margin-top:16px;">
         <input type="hidden" name="user_id" value="3">
+        <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
 
-        <button type="submit" class="contact-item" style="justify-content:center;">
+        <button type="submit" class="contact-item" style="justify-content:center; cursor:pointer;">
             <div class="contact-left">
                 <div class="icon">💬</div>
                 <div class="contact-text">
@@ -243,7 +246,7 @@ $user_id = $_SESSION['user_id'] ?? null;
         </button>
     </form>
 <?php else: ?>
-    <a href="/login.php?redirect=/contact.php" class="contact-item" style="justify-content:center; margin-top:16px;">
+    <a href="<?= e(basePath('login.php?redirect=' . urlencode(basePath('contact.php')))) ?>" class="contact-item" style="justify-content:center; margin-top:16px;">
         <div class="contact-left">
             <div class="icon">💬</div>
             <div class="contact-text">
