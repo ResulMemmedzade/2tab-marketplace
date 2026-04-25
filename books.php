@@ -116,7 +116,7 @@ if ($language !== "") {
 }
 
 if ($condition !== "") {
-    $sql .= " AND books.book_condition = ?";
+    $sql .= " AND LOWER(books.book_condition) = LOWER(?)";
     $params[] = $condition;
 }
 
@@ -386,6 +386,49 @@ try {
         color: #2563eb;
         margin-bottom: 12px;
     }
+    .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.book-condition {
+    margin-bottom: 12px;
+}
+
+.condition-new {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.condition-like-new {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.condition-good {
+    background: #e0f2fe;
+    color: #075985;
+}
+
+.condition-fair {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+.condition-poor {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.condition-default {
+    background: #e2e8f0;
+    color: #334155;
+}
 
     .book-actions {
         margin-top: auto;
@@ -612,6 +655,15 @@ try {
                     <div class="book-price">
                         <?php echo e($book["price"]); ?> AZN
                     </div>
+                    <?php
+$conditionMeta = getConditionMeta($book['book_condition'] ?? $book['condition'] ?? '');
+?>
+
+<div class="book-condition">
+    <span class="badge <?= e($conditionMeta['class']) ?>">
+        <?= e($conditionMeta['text']) ?>
+    </span>
+</div>
 
                     <div class="book-actions">
                         <a href="<?= e(basePath('book.php?id=' . (int)$book['id'])) ?>" class="btn btn-light">

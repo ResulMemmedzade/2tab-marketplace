@@ -253,6 +253,7 @@ if ($currentUserId) {
         border-radius: 999px;
         font-size: 14px;
         font-weight: 700;
+        white-space: nowrap;
     }
 
     .condition-new {
@@ -402,7 +403,21 @@ if ($currentUserId) {
             font-size: 30px;
         }
     }
+    @media (max-width: 520px) {
+    .price-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
 
+    .badge {
+        display: inline-block;
+        width: auto;
+        max-width: 100%;
+        font-size: 13px;
+        padding: 7px 12px;
+    }
+}
     @media (max-width: 700px) {
         .meta-grid {
             grid-template-columns: 1fr;

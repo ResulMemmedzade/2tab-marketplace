@@ -17,6 +17,28 @@ if (!isset($_SESSION['session_initialized'])) {
 }
 
 require_once "config.php";
+function getConditionMeta($rawCondition)
+{
+    $normalizedCondition = strtolower(trim((string)$rawCondition));
+
+    $conditionMap = [
+        'new' => ['text' => 'Yeni', 'class' => 'condition-new'],
+        'like new' => ['text' => 'Yeni kimi', 'class' => 'condition-like-new'],
+        'like_new' => ['text' => 'Yeni kimi', 'class' => 'condition-like-new'],
+        'very good' => ['text' => 'Yaxşı', 'class' => 'condition-good'],
+        'good' => ['text' => 'Yaxşı', 'class' => 'condition-good'],
+        'used' => ['text' => 'Orta', 'class' => 'condition-fair'],
+        'fair' => ['text' => 'Orta', 'class' => 'condition-fair'],
+        'acceptable' => ['text' => 'Orta', 'class' => 'condition-fair'],
+        'old' => ['text' => 'Köhnə', 'class' => 'condition-poor'],
+        'poor' => ['text' => 'Köhnə', 'class' => 'condition-poor']
+    ];
+
+    return $conditionMap[$normalizedCondition] ?? [
+        'text' => $rawCondition ?: 'Qeyd olunmayıb',
+        'class' => 'condition-default'
+    ];
+}
 
 $user_id = $_SESSION["user_id"] ?? 0;
 $unreadMessageCount = 0;
@@ -269,7 +291,49 @@ $userName = $_SESSION["name"] ?? "";
         color: #2563eb;
         margin-bottom: 12px;
     }
+    .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+}
 
+.book-condition {
+    margin-bottom: 12px;
+}
+
+.condition-new {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.condition-like-new {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.condition-good {
+    background: #e0f2fe;
+    color: #075985;
+}
+
+.condition-fair {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+.condition-poor {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.condition-default {
+    background: #e2e8f0;
+    color: #334155;
+}
     .book-actions {
         margin-top: auto;
     }
@@ -413,7 +477,15 @@ $userName = $_SESSION["name"] ?? "";
     <div class="book-price">
         <?php echo htmlspecialchars($book["price"], ENT_QUOTES, 'UTF-8'); ?> AZN
     </div>
+    <?php
+$conditionMeta = getConditionMeta($book['book_condition'] ?? $book['condition'] ?? '');
+?>
 
+<div class="book-condition">
+    <span class="badge <?= htmlspecialchars($conditionMeta['class'], ENT_QUOTES, 'UTF-8') ?>">
+        <?= htmlspecialchars($conditionMeta['text'], ENT_QUOTES, 'UTF-8') ?>
+    </span>
+</div>
     <div class="book-actions">
         <a href="/book.php?id=<?php echo (int)$book['id']; ?>" class="btn btn-light">Ətraflı bax</a>
     </div>
