@@ -179,7 +179,7 @@ $stmt->execute([$conversationId, $currentUserId]);
             min-height: 0;
             overflow-y: auto;
             overflow-x: hidden;
-            padding: 18px;
+            padding: 18px 18px 138px;
             display: flex;
             flex-direction: column;
             gap: 16px;
@@ -243,6 +243,21 @@ $stmt->execute([$conversationId, $currentUserId]);
             opacity: 0.92;
         }
 
+        .message-status {
+            opacity: 0.9;
+            font-size: 12px;
+        }
+
+        .chat-image {
+            display: block;
+            max-width: 240px;
+            max-height: 320px;
+            width: auto;
+            height: auto;
+            border-radius: 12px;
+            object-fit: contain;
+        }
+
         .empty-chat {
             color: #64748b;
             text-align: center;
@@ -276,6 +291,71 @@ $stmt->execute([$conversationId, $currentUserId]);
             border-radius: 12px;
             margin-bottom: 10px;
             display: none;
+        }
+
+        .image-preview {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .image-preview img {
+            width: 64px;
+            height: 64px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+        }
+
+        .image-preview-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .image-preview-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 4px;
+        }
+
+        .image-preview-name {
+            font-size: 12px;
+            color: #64748b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .preview-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .preview-btn {
+            border: none;
+            border-radius: 10px;
+            padding: 9px 11px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .preview-send {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .preview-cancel {
+            background: #e2e8f0;
+            color: #1e293b;
         }
 
         .chat-form {
@@ -373,12 +453,17 @@ $stmt->execute([$conversationId, $currentUserId]);
             }
 
             .chat-messages {
-                padding: 14px;
+                padding: 14px 14px 130px;
                 gap: 12px;
             }
 
             .message-bubble {
                 max-width: 85%;
+            }
+
+            .chat-image {
+                max-width: 210px;
+                max-height: 280px;
             }
 
             .chat-form-wrap {
@@ -388,6 +473,7 @@ $stmt->execute([$conversationId, $currentUserId]);
             .input-shell {
                 border-radius: 20px;
                 padding: 8px 8px 8px 12px;
+                gap: 8px;
             }
 
             textarea {
@@ -399,6 +485,14 @@ $stmt->execute([$conversationId, $currentUserId]);
                 width: 44px;
                 height: 44px;
                 min-width: 44px;
+            }
+
+            .image-preview {
+                align-items: flex-start;
+            }
+
+            .preview-actions {
+                flex-direction: column;
             }
         }
     </style>
@@ -418,15 +512,32 @@ $stmt->execute([$conversationId, $currentUserId]);
             <div class="chat-messages" id="chatMessages">
                 <?php if (count($messages) > 0): ?>
                     <?php foreach ($messages as $msg): ?>
-                        <?php $isMine = (int)$msg["sender_id"] === $currentUserId; ?>
+                        <?php
+                            $isMine = (int)$msg["sender_id"] === $currentUserId;
+                            $messageType = $msg["message_type"] ?? "text";
+                            $messageStatus = ((int)($msg["is_read"] ?? 0) === 1) ? "Oxundu ✓✓" : "Göndərildi ✓";
+                        ?>
                         <div class="message-row <?php echo $isMine ? 'mine' : 'other'; ?>">
                             <div class="message-bubble">
                                 <div class="message-meta">
                                     <span class="message-author"><?php echo e($msg["name"] ?? "İstifadəçi"); ?></span>
                                     <span>•</span>
                                     <span class="message-time"><?php echo e(formatRelativeTime($msg["created_at"] ?? "")); ?></span>
+                                    <?php if ($isMine): ?>
+                                        <span>•</span>
+                                        <span class="message-status"><?php echo e($messageStatus); ?></span>
+                                    <?php endif; ?>
                                 </div>
-                                <div><?php echo nl2br(e($msg["message"])); ?></div>
+
+                                <?php if ($messageType === "image"): ?>
+                                    <img
+                                        src="<?php echo e(basePath('uploads/' . ltrim((string)$msg["message"], '/'))); ?>"
+                                        class="chat-image"
+                                        alt="Göndərilən şəkil"
+                                    >
+                                <?php else: ?>
+                                    <div><?php echo nl2br(e($msg["message"])); ?></div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -441,6 +552,18 @@ $stmt->execute([$conversationId, $currentUserId]);
             <div class="chat-form-wrap">
                 <div class="alert-error" id="chatError"><?php echo $error ? e($error) : ''; ?></div>
 
+                <div class="image-preview" id="imagePreview">
+                    <img src="" alt="Seçilən şəkil" id="previewImage">
+                    <div class="image-preview-info">
+                        <div class="image-preview-title">Şəkil seçildi</div>
+                        <div class="image-preview-name" id="previewName"></div>
+                    </div>
+                    <div class="preview-actions">
+                        <button type="button" class="preview-btn preview-send" id="sendImageBtn">Göndər</button>
+                        <button type="button" class="preview-btn preview-cancel" id="cancelImageBtn">Ləğv et</button>
+                    </div>
+                </div>
+
                 <form method="POST" id="chatForm" class="chat-form">
                     <input type="hidden" name="conversation_id" value="<?php echo (int)$conversationId; ?>">
                     <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
@@ -453,6 +576,9 @@ $stmt->execute([$conversationId, $currentUserId]);
                             required
                         ></textarea>
 
+                        <input type="file" id="chatImage" style="display:none;" accept="image/*">
+
+                        <button type="button" class="send-btn" id="imageBtn" aria-label="Şəkil">📎</button>
                         <button type="button" class="send-btn" id="sendBtn" aria-label="Göndər">➤</button>
                     </div>
                 </form>
@@ -460,154 +586,263 @@ $stmt->execute([$conversationId, $currentUserId]);
         </div>
     </div>
 
-    <script>
-    const chatMessages = document.getElementById("chatMessages");
-    const chatForm = document.getElementById("chatForm");
-    const messageInput = document.getElementById("messageInput");
-    const sendBtn = document.getElementById("sendBtn");
-    const chatError = document.getElementById("chatError");
-    const emptyChat = document.getElementById("emptyChat");
+<script>
+const chatMessages = document.getElementById("chatMessages");
+const chatForm = document.getElementById("chatForm");
+const messageInput = document.getElementById("messageInput");
+const sendBtn = document.getElementById("sendBtn");
+const chatError = document.getElementById("chatError");
+const emptyChat = document.getElementById("emptyChat");
 
-    function scrollToBottom(force = false) {
-        if (!chatMessages) return;
+const imageBtn = document.getElementById("imageBtn");
+const chatImage = document.getElementById("chatImage");
+const imagePreview = document.getElementById("imagePreview");
+const previewImage = document.getElementById("previewImage");
+const previewName = document.getElementById("previewName");
+const sendImageBtn = document.getElementById("sendImageBtn");
+const cancelImageBtn = document.getElementById("cancelImageBtn");
 
-        if (force) {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            return;
-        }
+let selectedImageFile = null;
+let selectedImagePreviewUrl = null;
 
-        const distanceFromBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight;
-        if (distanceFromBottom < 150) {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
+const myName = <?php echo json_encode($_SESSION["name"] ?? $_SESSION["user_name"] ?? "Siz"); ?>;
+
+function scrollToBottom(force = false) {
+    if (!chatMessages) return;
+
+    if (force) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return;
     }
 
-    function autoResizeTextarea() {
-        if (!messageInput) return;
-        messageInput.style.height = "auto";
-        messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + "px";
+    const distanceFromBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight;
+    if (distanceFromBottom < 150) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
+}
 
-    function showError(message) {
-        if (!chatError) return;
-        chatError.textContent = message;
-        chatError.style.display = "block";
+function autoResizeTextarea() {
+    if (!messageInput) return;
+    messageInput.style.height = "auto";
+    messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + "px";
+}
+
+function showError(message) {
+    if (!chatError) return;
+    chatError.textContent = message;
+    chatError.style.display = "block";
+}
+
+function hideError() {
+    if (!chatError) return;
+    chatError.textContent = "";
+    chatError.style.display = "none";
+}
+
+function escapeHtml(value) {
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+function removeEmptyChat() {
+    const currentEmptyChat = document.getElementById("emptyChat");
+    if (currentEmptyChat) {
+        currentEmptyChat.remove();
     }
+}
 
-    function hideError() {
-        if (!chatError) return;
-        chatError.textContent = "";
-        chatError.style.display = "none";
-    }
+function appendMessage(messageHtml, timeText, authorName, statusText = "Göndərildi ✓") {
+    if (!chatMessages) return;
 
-    function appendMessage(messageHtml, timeText, authorName) {
-        if (!chatMessages) return;
+    removeEmptyChat();
 
-        if (emptyChat) {
-            emptyChat.remove();
-        }
+    const row = document.createElement("div");
+    row.className = "message-row mine";
 
-        const row = document.createElement("div");
-        row.className = "message-row mine";
+    const bubble = document.createElement("div");
+    bubble.className = "message-bubble";
 
-        const bubble = document.createElement("div");
-        bubble.className = "message-bubble";
+    const meta = document.createElement("div");
+    meta.className = "message-meta";
+    meta.innerHTML = `
+        <span class="message-author">${escapeHtml(authorName)}</span>
+        <span>•</span>
+        <span class="message-time">${escapeHtml(timeText)}</span>
+        <span>•</span>
+        <span class="message-status">${escapeHtml(statusText)}</span>
+    `;
 
-        const meta = document.createElement("div");
-        meta.className = "message-meta";
-        meta.innerHTML = `
-            <span class="message-author">${authorName}</span>
-            <span>•</span>
-            <span class="message-time">${timeText}</span>
-        `;
+    const content = document.createElement("div");
+    content.innerHTML = messageHtml;
 
-        const content = document.createElement("div");
-        content.innerHTML = messageHtml;
+    bubble.appendChild(meta);
+    bubble.appendChild(content);
+    row.appendChild(bubble);
+    chatMessages.appendChild(row);
 
-        bubble.appendChild(meta);
-        bubble.appendChild(content);
-        row.appendChild(bubble);
-        chatMessages.appendChild(row);
+    scrollToBottom(true);
+}
 
+function appendImageMessage(imageUrl, timeText, authorName, statusText = "Göndərildi ✓") {
+    const safeUrl = escapeHtml(imageUrl);
+    appendMessage(
+        `<img src="${safeUrl}" class="chat-image" alt="Göndərilən şəkil">`,
+        timeText,
+        authorName,
+        statusText
+    );
+}
+
+function keepComposerVisible() {
+    setTimeout(() => {
         scrollToBottom(true);
+    }, 80);
+
+    setTimeout(() => {
+        scrollToBottom(true);
+    }, 220);
+}
+
+function clearImagePreview() {
+    selectedImageFile = null;
+
+    if (selectedImagePreviewUrl) {
+        URL.revokeObjectURL(selectedImagePreviewUrl);
+        selectedImagePreviewUrl = null;
     }
 
-    function keepComposerVisible() {
-        setTimeout(() => {
-            scrollToBottom(true);
-        }, 80);
-
-        setTimeout(() => {
-            scrollToBottom(true);
-        }, 220);
+    if (chatImage) {
+        chatImage.value = "";
     }
 
-    async function sendMessage() {
-        hideError();
+    if (previewImage) {
+        previewImage.src = "";
+    }
 
-        const message = messageInput.value.trim();
-        if (message === "") {
-            showError("Mesaj boş ola bilməz.");
-            return;
-        }
+    if (previewName) {
+        previewName.textContent = "";
+    }
 
-        const formData = new FormData(chatForm);
-        const myName = <?php echo json_encode($_SESSION["user_name"] ?? "Siz"); ?>;
+    if (imagePreview) {
+        imagePreview.style.display = "none";
+    }
+}
 
-        sendBtn.disabled = true;
+async function sendMessage() {
+    hideError();
 
-        try {
-            const response = await fetch("/send_message.php", {
-                method: "POST",
-                body: formData,
-                headers: {
-                    "X-Requested-With": "XMLHttpRequest"
-                }
-            });
+    const message = messageInput.value.trim();
+    if (message === "") {
+        showError("Mesaj boş ola bilməz.");
+        return;
+    }
 
-            const data = await response.json();
+    const formData = new FormData(chatForm);
 
-            if (data.success) {
-                appendMessage(data.message, data.time || "indi", myName);
-                messageInput.value = "";
-                autoResizeTextarea();
-                keepComposerVisible();
-            } else {
-                showError(data.message || "Mesaj göndərilərkən xəta baş verdi.");
-                keepComposerVisible();
+    sendBtn.disabled = true;
+
+    try {
+        const response = await fetch("/send_message.php", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
             }
-        } catch (error) {
-            showError("Mesaj göndərilərkən xəta baş verdi.");
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            appendMessage(data.message, data.time || "indi", myName);
+            messageInput.value = "";
+            autoResizeTextarea();
             keepComposerVisible();
-        } finally {
-            sendBtn.disabled = false;
+        } else {
+            showError(data.message || "Mesaj göndərilərkən xəta baş verdi.");
+            keepComposerVisible();
         }
+    } catch (error) {
+        showError("Mesaj göndərilərkən xəta baş verdi.");
+        keepComposerVisible();
+    } finally {
+        sendBtn.disabled = false;
+    }
+}
+
+async function sendSelectedImage() {
+    hideError();
+
+    if (!selectedImageFile) {
+        showError("Şəkil seçilməyib.");
+        return;
     }
 
-    window.addEventListener("load", function () {
-        hideError();
-        scrollToBottom(true);
+    const formData = new FormData();
+    formData.append("image", selectedImageFile);
+    formData.append("conversation_id", <?php echo (int)$conversationId; ?>);
+    formData.append("csrf_token", "<?= e(csrfToken()) ?>");
+
+    if (sendImageBtn) {
+        sendImageBtn.disabled = true;
+        sendImageBtn.textContent = "Göndərilir...";
+    }
+
+    try {
+        const localPreviewUrl = selectedImagePreviewUrl;
+
+        const response = await fetch("/send_chat_image.php", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        });
+
+        if (response.ok) {
+            appendImageMessage(localPreviewUrl, "indi", myName, "Göndərildi ✓");
+            clearImagePreview();
+            keepComposerVisible();
+        } else {
+            showError("Şəkil göndərilə bilmədi.");
+        }
+    } catch (e) {
+        showError("Şəkil göndərilə bilmədi.");
+    } finally {
+        if (sendImageBtn) {
+            sendImageBtn.disabled = false;
+            sendImageBtn.textContent = "Göndər";
+        }
+    }
+}
+
+window.addEventListener("load", function () {
+    hideError();
+    scrollToBottom(true);
+    autoResizeTextarea();
+    keepComposerVisible();
+});
+
+if (messageInput) {
+    messageInput.addEventListener("input", function () {
         autoResizeTextarea();
+        hideError();
         keepComposerVisible();
     });
 
-    if (messageInput) {
-        messageInput.addEventListener("input", function () {
-            autoResizeTextarea();
-            hideError();
-            keepComposerVisible();
-        });
+    messageInput.addEventListener("focus", function () {
+        keepComposerVisible();
+    });
 
-        messageInput.addEventListener("focus", function () {
-            keepComposerVisible();
-        });
+    messageInput.addEventListener("click", function () {
+        keepComposerVisible();
+    });
+}
 
-        messageInput.addEventListener("click", function () {
-            keepComposerVisible();
-        });
-    }
-
-    if (sendBtn) {
+if (sendBtn) {
     sendBtn.addEventListener("touchstart", function (event) {
         event.preventDefault();
         sendMessage();
@@ -619,20 +854,75 @@ $stmt->execute([$conversationId, $currentUserId]);
     });
 }
 
-    if (chatForm) {
-        chatForm.addEventListener("submit", function (event) {
-            event.preventDefault();
-        });
-    }
-
-    window.addEventListener("resize", function () {
-        keepComposerVisible();
+if (imageBtn && chatImage) {
+    imageBtn.addEventListener("click", function () {
+        chatImage.click();
     });
 
-    if (window.visualViewport) {
-        window.visualViewport.addEventListener("resize", keepComposerVisible);
-        window.visualViewport.addEventListener("scroll", keepComposerVisible);
-    }
+    chatImage.addEventListener("change", function () {
+        hideError();
+
+        if (!chatImage.files || !chatImage.files.length) {
+            clearImagePreview();
+            return;
+        }
+
+        const file = chatImage.files[0];
+
+        if (!file.type.startsWith("image/")) {
+            clearImagePreview();
+            showError("Yalnız şəkil faylı seçilə bilər.");
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            clearImagePreview();
+            showError("Şəkil maksimum 5 MB ola bilər.");
+            return;
+        }
+
+        selectedImageFile = file;
+
+        if (selectedImagePreviewUrl) {
+            URL.revokeObjectURL(selectedImagePreviewUrl);
+        }
+
+        selectedImagePreviewUrl = URL.createObjectURL(file);
+
+        previewImage.src = selectedImagePreviewUrl;
+        previewName.textContent = file.name;
+        imagePreview.style.display = "flex";
+
+        keepComposerVisible();
+    });
+}
+
+if (sendImageBtn) {
+    sendImageBtn.addEventListener("click", function () {
+        sendSelectedImage();
+    });
+}
+
+if (cancelImageBtn) {
+    cancelImageBtn.addEventListener("click", function () {
+        clearImagePreview();
+    });
+}
+
+if (chatForm) {
+    chatForm.addEventListener("submit", function (event) {
+        event.preventDefault();
+    });
+}
+
+window.addEventListener("resize", function () {
+    keepComposerVisible();
+});
+
+if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", keepComposerVisible);
+    window.visualViewport.addEventListener("scroll", keepComposerVisible);
+}
 </script>
 </body>
 </html>
