@@ -89,6 +89,7 @@ $stmt->execute([$conversationId, $currentUserId]);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Mesajlaşma - 2tab</title>
+
     <style>
         * { box-sizing: border-box; }
 
@@ -106,8 +107,8 @@ $stmt->execute([$conversationId, $currentUserId]);
         }
 
         .chat-page {
-            height: 100vh;
-            height: 100dvh;
+            height: 100%;
+            min-height: 100dvh;
             display: flex;
             flex-direction: column;
             background: #f8fafc;
@@ -171,7 +172,7 @@ $stmt->execute([$conversationId, $currentUserId]);
             min-height: 0;
             overflow-y: auto;
             overflow-x: hidden;
-            padding: 18px;
+            padding: 18px 18px 12px;
             display: flex;
             flex-direction: column;
             gap: 16px;
@@ -190,6 +191,7 @@ $stmt->execute([$conversationId, $currentUserId]);
         .message-row.other { justify-content: flex-start; }
 
         .message-bubble {
+            position: relative;
             max-width: min(72%, 520px);
             padding: 12px 14px;
             border-radius: 16px;
@@ -197,6 +199,9 @@ $stmt->execute([$conversationId, $currentUserId]);
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
             word-wrap: break-word;
             overflow-wrap: break-word;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
         }
 
         .message-row.mine .message-bubble {
@@ -212,10 +217,16 @@ $stmt->execute([$conversationId, $currentUserId]);
             border-bottom-left-radius: 6px;
         }
 
+        .message-bubble.selected {
+            outline: 3px solid rgba(37, 99, 235, 0.35);
+            transform: scale(0.99);
+        }
+
         .message-bubble.image-bubble {
             width: fit-content;
             max-width: min(82%, 280px);
             padding: 8px;
+            overflow: hidden;
         }
 
         .message-meta {
@@ -244,30 +255,8 @@ $stmt->execute([$conversationId, $currentUserId]);
             background: transparent;
         }
 
-        .message-actions {
-            margin-top: 8px;
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .message-action-btn {
-            border: none;
-            border-radius: 9px;
-            padding: 6px 9px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .edit-btn {
-            background: rgba(255, 255, 255, 0.22);
-            color: #ffffff;
-        }
-
-        .delete-btn {
-            background: rgba(239, 68, 68, 0.95);
-            color: #ffffff;
+        .message-text {
+            white-space: normal;
         }
 
         .edit-box {
@@ -291,6 +280,30 @@ $stmt->execute([$conversationId, $currentUserId]);
             display: flex;
             gap: 8px;
             margin-top: 8px;
+        }
+
+        .message-action-btn {
+            border: none;
+            border-radius: 9px;
+            padding: 8px 11px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .edit-btn {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        .delete-btn {
+            background: #ef4444;
+            color: #ffffff;
+        }
+
+        .cancel-btn {
+            background: #e2e8f0;
+            color: #1e293b;
         }
 
         .empty-chat {
@@ -496,6 +509,40 @@ $stmt->execute([$conversationId, $currentUserId]);
             cursor: pointer;
         }
 
+        .selection-bar {
+            display: none;
+            position: fixed;
+            left: 12px;
+            right: 12px;
+            bottom: calc(12px + env(safe-area-inset-bottom));
+            z-index: 800;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 18px;
+            padding: 12px;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .selection-bar.is-open {
+            display: flex;
+        }
+
+        .selection-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .selection-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
         @media (max-width: 768px) {
             .chat-page { background: #ffffff; }
 
@@ -511,7 +558,7 @@ $stmt->execute([$conversationId, $currentUserId]);
             .chat-header-text p { font-size: 12px; }
 
             .chat-messages {
-                padding: 14px;
+                padding: 14px 14px 10px;
                 gap: 12px;
             }
 
@@ -559,6 +606,7 @@ $stmt->execute([$conversationId, $currentUserId]);
     </style>
 </head>
 <body>
+
 <div class="chat-page">
     <div class="chat-header">
         <a href="/messages.php" class="back-btn" aria-label="Mesajlara qayıt">←</a>
@@ -576,15 +624,26 @@ $stmt->execute([$conversationId, $currentUserId]);
                     <?php
                         $isMine = (int)$msg["sender_id"] === $currentUserId;
                         $messageType = $msg["message_type"] ?? "text";
-                        $messageStatus = ((int)($msg["is_read"] ?? 0) === 1) ? "Oxundu ✓✓" : "Göndərildi ✓";
+                        $isRead = (int)($msg["is_read"] ?? 0) === 1;
+                        $messageStatus = $isRead ? "Oxundu ✓✓" : "Göndərildi ✓";
                         $bubbleClass = $messageType === "image" ? "message-bubble image-bubble" : "message-bubble";
+                        $canEdit = $isMine && $messageType === "text" && !$isRead;
+                        $canDelete = $isMine;
                     ?>
+
                     <div class="message-row <?php echo $isMine ? 'mine' : 'other'; ?>">
-                        <div class="<?php echo e($bubbleClass); ?>">
+                        <div
+                            class="<?php echo e($bubbleClass); ?>"
+                            data-message-id="<?php echo (int)$msg["id"]; ?>"
+                            data-message-type="<?php echo e($messageType); ?>"
+                            data-can-edit="<?php echo $canEdit ? '1' : '0'; ?>"
+                            data-can-delete="<?php echo $canDelete ? '1' : '0'; ?>"
+                        >
                             <div class="message-meta">
                                 <span class="message-author"><?php echo e($msg["name"] ?? "İstifadəçi"); ?></span>
                                 <span>•</span>
                                 <span class="message-time"><?php echo e(formatRelativeTime($msg["created_at"] ?? "")); ?></span>
+
                                 <?php if ($isMine): ?>
                                     <span>•</span>
                                     <span class="message-status"><?php echo e($messageStatus); ?></span>
@@ -600,33 +659,15 @@ $stmt->execute([$conversationId, $currentUserId]);
                             <?php else: ?>
                                 <div class="message-text"><?php echo nl2br(e($msg["message"])); ?></div>
 
-                                <?php if ($isMine): ?>
-                                    <div class="edit-box" id="editBox<?php echo (int)$msg["id"]; ?>">
-                                        <form method="POST" action="<?php echo e(basePath('edit_message.php')); ?>">
-                                            <input type="hidden" name="csrf_token" value="<?php echo e(csrfToken()); ?>">
-                                            <input type="hidden" name="message_id" value="<?php echo (int)$msg["id"]; ?>">
-                                            <textarea name="message" required><?php echo e($msg["message"]); ?></textarea>
-                                            <div class="edit-box-actions">
-                                                <button type="submit" class="message-action-btn edit-btn">Yadda saxla</button>
-                                                <button type="button" class="message-action-btn delete-btn js-cancel-edit" data-edit-box="editBox<?php echo (int)$msg["id"]; ?>">Bağla</button>
-                                            </div>
-                                        </form>
+                                <?php if ($canEdit): ?>
+                                    <div class="edit-box">
+                                        <textarea class="edit-message-input" required><?php echo e($msg["message"]); ?></textarea>
+                                        <div class="edit-box-actions">
+                                            <button type="button" class="message-action-btn edit-btn js-save-edit">Yadda saxla</button>
+                                            <button type="button" class="message-action-btn cancel-btn js-cancel-edit">Bağla</button>
+                                        </div>
                                     </div>
                                 <?php endif; ?>
-                            <?php endif; ?>
-
-                            <?php if ($isMine): ?>
-                                <div class="message-actions">
-                                    <?php if ($messageType === "text"): ?>
-                                        <button type="button" class="message-action-btn edit-btn js-edit-btn" data-edit-box="editBox<?php echo (int)$msg["id"]; ?>">Edit</button>
-                                    <?php endif; ?>
-
-                                    <form method="POST" action="<?php echo e(basePath('delete_message.php')); ?>" onsubmit="return confirm('Bu mesaj silinsin?');">
-                                        <input type="hidden" name="csrf_token" value="<?php echo e(csrfToken()); ?>">
-                                        <input type="hidden" name="message_id" value="<?php echo (int)$msg["id"]; ?>">
-                                        <button type="submit" class="message-action-btn delete-btn">Sil</button>
-                                    </form>
-                                </div>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -639,8 +680,8 @@ $stmt->execute([$conversationId, $currentUserId]);
             <?php endif; ?>
         </div>
 
-        <div class="chat-form-wrap">
-            <div class="alert-error" id="chatError"><?php echo $error ? e($error) : ''; ?></div>
+        <div class="chat-form-wrap" id="composerWrap">
+            <div class="alert-error" id="chatError"></div>
 
             <div class="image-preview" id="imagePreview">
                 <img src="" alt="Seçilən şəkil" id="previewImage">
@@ -666,13 +707,22 @@ $stmt->execute([$conversationId, $currentUserId]);
                         required
                     ></textarea>
 
-                    <input type="file" id="chatImage" style="display:none;" accept="image/*">
+                    <input type="file" name="image" id="chatImage" style="display:none;" accept="image/*">
 
                     <button type="button" class="send-btn" id="imageBtn" aria-label="Şəkil">📷</button>
                     <button type="button" class="send-btn" id="sendBtn" aria-label="Göndər">➤</button>
                 </div>
             </form>
         </div>
+    </div>
+</div>
+
+<div class="selection-bar" id="selectionBar">
+    <div class="selection-title">Mesaj seçildi</div>
+    <div class="selection-actions">
+        <button type="button" class="message-action-btn edit-btn" id="selectionEditBtn">Edit</button>
+        <button type="button" class="message-action-btn delete-btn" id="selectionDeleteBtn">Sil</button>
+        <button type="button" class="message-action-btn cancel-btn" id="selectionCancelBtn">Bağla</button>
     </div>
 </div>
 
@@ -700,39 +750,63 @@ const imageModal = document.getElementById("imageModal");
 const modalImage = document.getElementById("modalImage");
 const closeImageModal = document.getElementById("closeImageModal");
 
+const selectionBar = document.getElementById("selectionBar");
+const selectionEditBtn = document.getElementById("selectionEditBtn");
+const selectionDeleteBtn = document.getElementById("selectionDeleteBtn");
+const selectionCancelBtn = document.getElementById("selectionCancelBtn");
+
 let selectedImageFile = null;
 let selectedImagePreviewUrl = null;
+let selectedBubble = null;
+let pressTimer = null;
+let didLongPress = false;
 
+const csrfToken = <?php echo json_encode(csrfToken()); ?>;
+const conversationId = <?php echo (int)$conversationId; ?>;
 const myName = <?php echo json_encode($_SESSION["name"] ?? $_SESSION["user_name"] ?? "Siz"); ?>;
 
 function scrollToBottom(force = false) {
     if (!chatMessages) return;
 
-    if (force) {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        return;
-    }
+    requestAnimationFrame(function () {
+        if (force) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return;
+        }
 
-    const distanceFromBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight;
-    if (distanceFromBottom < 150) {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
+        const distanceFromBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight;
+
+        if (distanceFromBottom < 180) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    });
+}
+
+function keepComposerVisible() {
+    scrollToBottom(true);
+    setTimeout(() => scrollToBottom(true), 80);
+    setTimeout(() => scrollToBottom(true), 220);
+    setTimeout(() => scrollToBottom(true), 420);
 }
 
 function autoResizeTextarea() {
     if (!messageInput) return;
+
     messageInput.style.height = "auto";
     messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + "px";
 }
 
 function showError(message) {
     if (!chatError) return;
+
     chatError.textContent = message;
     chatError.style.display = "block";
+    keepComposerVisible();
 }
 
 function hideError() {
     if (!chatError) return;
+
     chatError.textContent = "";
     chatError.style.display = "none";
 }
@@ -753,7 +827,92 @@ function removeEmptyChat() {
     }
 }
 
-function appendMessage(messageHtml, timeText, authorName, statusText = "Göndərildi ✓") {
+function nl2br(value) {
+    return escapeHtml(value).replace(/\n/g, "<br>");
+}
+
+function clearSelection() {
+    if (selectedBubble) {
+        selectedBubble.classList.remove("selected");
+    }
+
+    selectedBubble = null;
+
+    if (selectionBar) {
+        selectionBar.classList.remove("is-open");
+    }
+}
+
+function openSelection(bubble) {
+    if (!bubble) return;
+
+    if (bubble.dataset.canDelete !== "1") {
+        return;
+    }
+
+    clearSelection();
+
+    selectedBubble = bubble;
+    selectedBubble.classList.add("selected");
+
+    if (selectionEditBtn) {
+        selectionEditBtn.style.display = bubble.dataset.canEdit === "1" ? "inline-flex" : "none";
+    }
+
+    if (selectionDeleteBtn) {
+        selectionDeleteBtn.style.display = bubble.dataset.canDelete === "1" ? "inline-flex" : "none";
+    }
+
+    if (selectionBar) {
+        selectionBar.classList.add("is-open");
+    }
+}
+
+function bindLongPressToBubble(bubble) {
+    if (!bubble || bubble.dataset.longPressBound === "1") return;
+
+    bubble.dataset.longPressBound = "1";
+
+    bubble.addEventListener("touchstart", function () {
+        didLongPress = false;
+
+        pressTimer = setTimeout(function () {
+            didLongPress = true;
+            openSelection(bubble);
+        }, 650);
+    }, { passive: true });
+
+    bubble.addEventListener("touchend", function () {
+        clearTimeout(pressTimer);
+    });
+
+    bubble.addEventListener("touchmove", function () {
+        clearTimeout(pressTimer);
+    });
+
+    bubble.addEventListener("mousedown", function () {
+        didLongPress = false;
+
+        pressTimer = setTimeout(function () {
+            didLongPress = true;
+            openSelection(bubble);
+        }, 650);
+    });
+
+    bubble.addEventListener("mouseup", function () {
+        clearTimeout(pressTimer);
+    });
+
+    bubble.addEventListener("mouseleave", function () {
+        clearTimeout(pressTimer);
+    });
+}
+
+function bindAllLongPress() {
+    document.querySelectorAll(".message-bubble").forEach(bindLongPressToBubble);
+}
+
+function appendMessage(messageText, timeText, authorName, messageId = "", canEdit = true) {
     if (!chatMessages) return;
 
     removeEmptyChat();
@@ -763,6 +922,10 @@ function appendMessage(messageHtml, timeText, authorName, statusText = "Göndər
 
     const bubble = document.createElement("div");
     bubble.className = "message-bubble";
+    bubble.dataset.messageId = messageId;
+    bubble.dataset.messageType = "text";
+    bubble.dataset.canEdit = canEdit ? "1" : "0";
+    bubble.dataset.canDelete = "1";
 
     const meta = document.createElement("div");
     meta.className = "message-meta";
@@ -771,32 +934,52 @@ function appendMessage(messageHtml, timeText, authorName, statusText = "Göndər
         <span>•</span>
         <span class="message-time">${escapeHtml(timeText)}</span>
         <span>•</span>
-        <span class="message-status">${escapeHtml(statusText)}</span>
+        <span class="message-status">Göndərildi ✓</span>
     `;
 
-    const content = document.createElement("div");
-    content.innerHTML = messageHtml;
+    const text = document.createElement("div");
+    text.className = "message-text";
+    text.innerHTML = nl2br(messageText);
 
-    bubble.appendChild(meta);
-    bubble.appendChild(content);
+    if (canEdit) {
+        const editBox = document.createElement("div");
+        editBox.className = "edit-box";
+        editBox.innerHTML = `
+            <textarea class="edit-message-input" required>${escapeHtml(messageText)}</textarea>
+            <div class="edit-box-actions">
+                <button type="button" class="message-action-btn edit-btn js-save-edit">Yadda saxla</button>
+                <button type="button" class="message-action-btn cancel-btn js-cancel-edit">Bağla</button>
+            </div>
+        `;
+        bubble.appendChild(meta);
+        bubble.appendChild(text);
+        bubble.appendChild(editBox);
+    } else {
+        bubble.appendChild(meta);
+        bubble.appendChild(text);
+    }
+
     row.appendChild(bubble);
     chatMessages.appendChild(row);
 
+    bindLongPressToBubble(bubble);
     scrollToBottom(true);
 }
 
-function appendImageMessage(imageUrl, timeText, authorName, statusText = "Göndərildi ✓") {
+function appendImageMessage(imageUrl, timeText, authorName, messageId = "") {
     if (!chatMessages) return;
 
     removeEmptyChat();
-
-    const safeUrl = escapeHtml(imageUrl);
 
     const row = document.createElement("div");
     row.className = "message-row mine";
 
     const bubble = document.createElement("div");
     bubble.className = "message-bubble image-bubble";
+    bubble.dataset.messageId = messageId;
+    bubble.dataset.messageType = "image";
+    bubble.dataset.canEdit = "0";
+    bubble.dataset.canDelete = "1";
 
     const meta = document.createElement("div");
     meta.className = "message-meta";
@@ -805,11 +988,11 @@ function appendImageMessage(imageUrl, timeText, authorName, statusText = "Gönd�
         <span>•</span>
         <span class="message-time">${escapeHtml(timeText)}</span>
         <span>•</span>
-        <span class="message-status">${escapeHtml(statusText)}</span>
+        <span class="message-status">Göndərildi ✓</span>
     `;
 
     const img = document.createElement("img");
-    img.src = safeUrl;
+    img.src = imageUrl;
     img.className = "chat-image js-full-image";
     img.alt = "Göndərilən şəkil";
 
@@ -818,12 +1001,8 @@ function appendImageMessage(imageUrl, timeText, authorName, statusText = "Gönd�
     row.appendChild(bubble);
     chatMessages.appendChild(row);
 
+    bindLongPressToBubble(bubble);
     scrollToBottom(true);
-}
-
-function keepComposerVisible() {
-    setTimeout(() => scrollToBottom(true), 80);
-    setTimeout(() => scrollToBottom(true), 220);
 }
 
 function clearImagePreview() {
@@ -844,6 +1023,7 @@ async function sendMessage() {
     hideError();
 
     const message = messageInput.value.trim();
+
     if (message === "") {
         showError("Mesaj boş ola bilməz.");
         return;
@@ -853,7 +1033,7 @@ async function sendMessage() {
     sendBtn.disabled = true;
 
     try {
-        const response = await fetch("/send_message.php", {
+        const response = await fetch("<?php echo e(basePath('send_message.php')); ?>", {
             method: "POST",
             body: formData,
             headers: {
@@ -861,20 +1041,31 @@ async function sendMessage() {
             }
         });
 
-        const data = await response.json();
+        let data = null;
 
-        if (data.success) {
-            appendMessage(data.message, data.time || "indi", myName);
+        try {
+            data = await response.json();
+        } catch (e) {
+            data = null;
+        }
+
+        if (response.ok && data && data.success) {
+            appendMessage(
+                data.raw_message || message,
+                data.time || "indi",
+                myName,
+                data.message_id || "",
+                true
+            );
+
             messageInput.value = "";
             autoResizeTextarea();
             keepComposerVisible();
         } else {
-            showError(data.message || "Mesaj göndərilərkən xəta baş verdi.");
-            keepComposerVisible();
+            showError((data && data.message) ? data.message : "Mesaj göndərilərkən xəta baş verdi.");
         }
     } catch (error) {
         showError("Mesaj göndərilərkən xəta baş verdi.");
-        keepComposerVisible();
     } finally {
         sendBtn.disabled = false;
     }
@@ -890,8 +1081,8 @@ async function sendSelectedImage() {
 
     const formData = new FormData();
     formData.append("image", selectedImageFile);
-    formData.append("conversation_id", <?php echo (int)$conversationId; ?>);
-    formData.append("csrf_token", "<?php echo e(csrfToken()); ?>");
+    formData.append("conversation_id", conversationId);
+    formData.append("csrf_token", csrfToken);
 
     if (sendImageBtn) {
         sendImageBtn.disabled = true;
@@ -901,7 +1092,7 @@ async function sendSelectedImage() {
     try {
         const localPreviewUrl = selectedImagePreviewUrl;
 
-        const response = await fetch("/send_chat_image.php", {
+        const response = await fetch("<?php echo e(basePath('upload_chat_image.php')); ?>", {
             method: "POST",
             body: formData,
             headers: {
@@ -909,12 +1100,23 @@ async function sendSelectedImage() {
             }
         });
 
+        let data = null;
+
+        try {
+            data = await response.json();
+        } catch (e) {
+            data = null;
+        }
+
         if (response.ok) {
-            appendImageMessage(localPreviewUrl, "indi", myName, "Göndərildi ✓");
+            const imageUrl = data && data.image_url ? data.image_url : localPreviewUrl;
+            const messageId = data && data.message_id ? data.message_id : "";
+
+            appendImageMessage(imageUrl, "indi", myName, messageId);
             clearImagePreview();
             keepComposerVisible();
         } else {
-            showError("Şəkil göndərilə bilmədi.");
+            showError((data && data.message) ? data.message : "Şəkil göndərilə bilmədi.");
         }
     } catch (e) {
         showError("Şəkil göndərilə bilmədi.");
@@ -926,10 +1128,136 @@ async function sendSelectedImage() {
     }
 }
 
+async function deleteSelectedMessage() {
+    if (!selectedBubble) return;
+
+    const messageId = selectedBubble.dataset.messageId;
+
+    if (!messageId) {
+        showError("Mesaj ID tapılmadı. Səhifəni yeniləyib yenidən yoxla.");
+        return;
+    }
+
+    if (!confirm("Bu mesaj silinsin?")) {
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("csrf_token", csrfToken);
+    formData.append("message_id", messageId);
+
+    try {
+        const response = await fetch("<?php echo e(basePath('delete_message.php')); ?>", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        });
+
+        if (response.ok || response.redirected) {
+            const row = selectedBubble.closest(".message-row");
+            if (row) row.remove();
+            clearSelection();
+            keepComposerVisible();
+        } else {
+            showError("Mesaj silinmədi.");
+        }
+    } catch (e) {
+        showError("Mesaj silinmədi.");
+    }
+}
+
+function openEditForSelected() {
+    if (!selectedBubble) return;
+
+    if (selectedBubble.dataset.canEdit !== "1") {
+        showError("Bu mesaj artıq oxunub və edit etmək olmaz.");
+        clearSelection();
+        return;
+    }
+
+    const editBox = selectedBubble.querySelector(".edit-box");
+
+    if (!editBox) {
+        showError("Bu mesaj edit edilə bilməz.");
+        clearSelection();
+        return;
+    }
+
+    editBox.style.display = "block";
+
+    const textarea = editBox.querySelector(".edit-message-input");
+    if (textarea) {
+        textarea.focus();
+        textarea.selectionStart = textarea.value.length;
+        textarea.selectionEnd = textarea.value.length;
+    }
+
+    clearSelection();
+    keepComposerVisible();
+}
+
+async function saveEdit(button) {
+    const bubble = button.closest(".message-bubble");
+    if (!bubble) return;
+
+    const messageId = bubble.dataset.messageId;
+    const textarea = bubble.querySelector(".edit-message-input");
+    const textBox = bubble.querySelector(".message-text");
+    const editBox = bubble.querySelector(".edit-box");
+
+    if (!messageId || !textarea) {
+        showError("Edit üçün məlumat tapılmadı.");
+        return;
+    }
+
+    const newMessage = textarea.value.trim();
+
+    if (newMessage === "") {
+        showError("Mesaj boş ola bilməz.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("csrf_token", csrfToken);
+    formData.append("message_id", messageId);
+    formData.append("message", newMessage);
+
+    button.disabled = true;
+
+    try {
+        const response = await fetch("<?php echo e(basePath('edit_message.php')); ?>", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        });
+
+        if (response.ok || response.redirected) {
+            if (textBox) {
+                textBox.innerHTML = nl2br(newMessage);
+            }
+
+            if (editBox) {
+                editBox.style.display = "none";
+            }
+        } else {
+            showError("Mesaj edit olunmadı.");
+        }
+    } catch (e) {
+        showError("Mesaj edit olunmadı.");
+    } finally {
+        button.disabled = false;
+    }
+}
+
 window.addEventListener("load", function () {
     hideError();
-    scrollToBottom(true);
+    bindAllLongPress();
     autoResizeTextarea();
+    keepComposerVisible();
 });
 
 if (messageInput) {
@@ -939,20 +1267,20 @@ if (messageInput) {
     });
 
     messageInput.addEventListener("focus", function () {
-        setTimeout(() => scrollToBottom(true), 250);
+        keepComposerVisible();
     });
 }
 
 if (sendBtn) {
-    sendBtn.addEventListener("touchstart", function (event) {
-        event.preventDefault();
-        sendMessage();
-    }, { passive: false });
-
     sendBtn.addEventListener("click", function (event) {
         event.preventDefault();
         sendMessage();
     });
+
+    sendBtn.addEventListener("touchstart", function (event) {
+        event.preventDefault();
+        sendMessage();
+    }, { passive: false });
 }
 
 if (imageBtn && chatImage) {
@@ -976,9 +1304,9 @@ if (imageBtn && chatImage) {
             return;
         }
 
-        if (file.size > 5 * 1024 * 1024) {
+        if (file.size > 10 * 1024 * 1024) {
             clearImagePreview();
-            showError("Şəkil maksimum 5 MB ola bilər.");
+            showError("Şəkil maksimum 10 MB ola bilər.");
             return;
         }
 
@@ -994,7 +1322,7 @@ if (imageBtn && chatImage) {
         previewName.textContent = file.name;
         imagePreview.style.display = "flex";
 
-        setTimeout(() => scrollToBottom(true), 150);
+        keepComposerVisible();
     });
 }
 
@@ -1007,35 +1335,54 @@ if (sendImageBtn) {
 if (cancelImageBtn) {
     cancelImageBtn.addEventListener("click", function () {
         clearImagePreview();
+        keepComposerVisible();
     });
 }
 
-document.querySelectorAll(".js-edit-btn").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-        const editBoxId = btn.dataset.editBox;
-        const editBox = document.getElementById(editBoxId);
-        if (editBox) {
-            editBox.style.display = editBox.style.display === "block" ? "none" : "block";
-        }
+if (selectionEditBtn) {
+    selectionEditBtn.addEventListener("click", function () {
+        openEditForSelected();
     });
-});
+}
 
-document.querySelectorAll(".js-cancel-edit").forEach(function (btn) {
-    btn.addEventListener("click", function () {
-        const editBoxId = btn.dataset.editBox;
-        const editBox = document.getElementById(editBoxId);
+if (selectionDeleteBtn) {
+    selectionDeleteBtn.addEventListener("click", function () {
+        deleteSelectedMessage();
+    });
+}
+
+if (selectionCancelBtn) {
+    selectionCancelBtn.addEventListener("click", function () {
+        clearSelection();
+    });
+}
+
+document.addEventListener("click", function (event) {
+    const saveBtn = event.target.closest(".js-save-edit");
+    if (saveBtn) {
+        saveEdit(saveBtn);
+        return;
+    }
+
+    const cancelBtn = event.target.closest(".js-cancel-edit");
+    if (cancelBtn) {
+        const editBox = cancelBtn.closest(".edit-box");
         if (editBox) {
             editBox.style.display = "none";
         }
-    });
-});
+        return;
+    }
 
-document.addEventListener("click", function (event) {
     const img = event.target.closest(".js-full-image");
-    if (!img || !imageModal || !modalImage) return;
+    if (img && imageModal && modalImage) {
+        if (didLongPress) {
+            didLongPress = false;
+            return;
+        }
 
-    modalImage.src = img.src;
-    imageModal.classList.add("is-open");
+        modalImage.src = img.src;
+        imageModal.classList.add("is-open");
+    }
 });
 
 if (closeImageModal) {
@@ -1057,16 +1404,21 @@ if (imageModal) {
 if (chatForm) {
     chatForm.addEventListener("submit", function (event) {
         event.preventDefault();
+        sendMessage();
     });
 }
 
 window.addEventListener("resize", function () {
-    setTimeout(() => scrollToBottom(true), 150);
+    keepComposerVisible();
 });
 
 if (window.visualViewport) {
     window.visualViewport.addEventListener("resize", function () {
-        setTimeout(() => scrollToBottom(true), 180);
+        keepComposerVisible();
+    });
+
+    window.visualViewport.addEventListener("scroll", function () {
+        keepComposerVisible();
     });
 }
 </script>
