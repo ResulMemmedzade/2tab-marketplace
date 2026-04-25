@@ -239,8 +239,8 @@ $user_id = currentUserId();
             <div class="contact-left">
                 <div class="icon">💬</div>
                 <div class="contact-text">
-                    <div class="contact-title">Adminlə chat</div>
-                    <div class="contact-value">Dəstək ilə yazış</div>
+                    <div class="contact-title">Adminlə əlaqə</div>
+                    
                 </div>
             </div>
         </button>

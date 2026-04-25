@@ -253,7 +253,7 @@ try {
                     $lastMessageType = $chat["last_message_type"] ?? "text";
 
                     if ($lastMessageType === "image") {
-                        $preview = "Şəkil göndərildi";
+                        $preview = "(Şəkil göndərilib)";
                     } else {
                         $preview = trim((string)($chat["last_message"] ?? ""));
                     

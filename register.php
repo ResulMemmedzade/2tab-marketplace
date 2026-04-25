@@ -124,7 +124,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         <div class="brand">
             <img src="<?= e(basePath('assets/icons/logo.png')) ?>" class="brand-logo">
-            <p>Yeni hesab yaradın və kitab marketplace-ə qoşulun.</p>
+            <p>Yeni hesab yaradın və kitab bazarına qoşulun.</p>
         </div>
 
         <?php if ($error): ?>
