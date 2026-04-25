@@ -83,6 +83,27 @@ if ($user_id) {
     background: rgba(37, 99, 235, 0.08);
 }
 
+.message-link {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+}
+
+.message-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #dc2626 !important;
+    color: #ffffff !important;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+}
+
 /* MOBILE NAV */
 .topbar-nav-mobile {
     display: none;
@@ -131,25 +152,7 @@ if ($user_id) {
         width: 20px;
         height: 20px;
     }
-    .message-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
 
-.message-badge {
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
-    border-radius: 999px;
-    background: #dc2626;
-    color: #ffffff;
-    font-size: 12px;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
     .badge {
         position: absolute;
         top: 4px;
@@ -180,11 +183,11 @@ if ($user_id) {
             <a href="/books.php">Kitablar</a>
 
             <a href="/messages.php" class="message-link">
-    Mesajlar
-    <?php if ($unreadMessageCount > 0): ?>
-        <span class="message-badge"><?php echo $unreadMessageCount; ?></span>
-    <?php endif; ?>
-</a>
+                Mesajlar
+                <?php if ($unreadMessageCount > 0): ?>
+                    <span class="message-badge"><?php echo $unreadMessageCount; ?></span>
+                <?php endif; ?>
+            </a>
 
             <a href="/contact.php">Əlaqə</a>
 
@@ -223,10 +226,10 @@ if ($user_id) {
         </a>
 
         <?php if ($is_admin): ?>
-        <a href="/admin/dashboard.php">
-            <img src="/assets/icons/admin.png">
-            <span>Admin</span>
-        </a>
+            <a href="/admin/dashboard.php">
+                <img src="/assets/icons/admin.png">
+                <span>Admin</span>
+            </a>
         <?php endif; ?>
 
     </div>
