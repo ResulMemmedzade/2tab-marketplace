@@ -131,7 +131,25 @@ if ($user_id) {
         width: 20px;
         height: 20px;
     }
+    .message-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
 
+.message-badge {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #dc2626;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
     .badge {
         position: absolute;
         top: 4px;
