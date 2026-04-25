@@ -227,7 +227,32 @@ $user_id = $_SESSION['user_id'] ?? null;
                 </div>
                 <div class="arrow">›</div>
             </a>
+             
+            <?php if ($user_id): ?>
+    <form method="POST" action="/start_chat.php" style="margin-top:16px;">
+        <input type="hidden" name="user_id" value="3">
 
+        <button type="submit" class="contact-item" style="justify-content:center;">
+            <div class="contact-left">
+                <div class="icon">💬</div>
+                <div class="contact-text">
+                    <div class="contact-title">Adminlə chat</div>
+                    <div class="contact-value">Dəstək ilə yazış</div>
+                </div>
+            </div>
+        </button>
+    </form>
+<?php else: ?>
+    <a href="/login.php?redirect=/contact.php" class="contact-item" style="justify-content:center; margin-top:16px;">
+        <div class="contact-left">
+            <div class="icon">💬</div>
+            <div class="contact-text">
+                <div class="contact-title">Adminlə chat</div>
+                <div class="contact-value">Giriş et və yaz</div>
+            </div>
+        </div>
+    </a>
+<?php endif; ?>
         </div>
 
         

@@ -5,6 +5,29 @@ require_once "config.php";
 requireLogin();
 ensureCsrfToken();
 
+function getConditionMeta($rawCondition)
+{
+    $normalizedCondition = strtolower(trim((string)$rawCondition));
+
+    $conditionMap = [
+        'new' => ['text' => 'Yeni', 'class' => 'condition-new'],
+        'like new' => ['text' => 'Yeni kimi', 'class' => 'condition-like-new'],
+        'like_new' => ['text' => 'Yeni kimi', 'class' => 'condition-like-new'],
+        'very good' => ['text' => 'Yaxşı', 'class' => 'condition-good'],
+        'good' => ['text' => 'Yaxşı', 'class' => 'condition-good'],
+        'used' => ['text' => 'Orta', 'class' => 'condition-fair'],
+        'fair' => ['text' => 'Orta', 'class' => 'condition-fair'],
+        'acceptable' => ['text' => 'Orta', 'class' => 'condition-fair'],
+        'old' => ['text' => 'Köhnə', 'class' => 'condition-poor'],
+        'poor' => ['text' => 'Köhnə', 'class' => 'condition-poor']
+    ];
+
+    return $conditionMap[$normalizedCondition] ?? [
+        'text' => $rawCondition ?: 'Qeyd olunmayıb',
+        'class' => 'condition-default'
+    ];
+}
+
 $user_id = currentUserId();
 
 $unreadMessageCount = 0;
@@ -175,6 +198,51 @@ try {
         margin-bottom: 12px;
     }
 
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 7px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .book-condition {
+        margin-bottom: 12px;
+    }
+
+    .condition-new {
+        background: #22c55e;
+        color: white;
+    }
+
+    .condition-like-new {
+        background: #3b82f6;
+        color: white;
+    }
+
+    .condition-good {
+        background: #0ea5e9;
+        color: white;
+    }
+
+    .condition-fair {
+        background: #f97316;
+        color: white;
+    }
+
+    .condition-poor {
+        background: #ef4444;
+        color: white;
+    }
+
+    .condition-default {
+        background: #64748b;
+        color: white;
+    }
+
     .book-actions {
         margin-top: auto;
         display: flex;
@@ -288,6 +356,13 @@ try {
             padding: 10px 12px;
             font-size: 13px;
         }
+
+        .badge {
+            display: inline-flex;
+            width: auto;
+            max-width: 100%;
+            white-space: nowrap;
+        }
     }
 </style>
 </head>
@@ -324,6 +399,16 @@ try {
 
                     <div class="book-price">
                         <?php echo htmlspecialchars($book["price"], ENT_QUOTES, 'UTF-8'); ?> AZN
+                    </div>
+
+                    <?php
+                    $conditionMeta = getConditionMeta($book['book_condition'] ?? $book['condition'] ?? '');
+                    ?>
+
+                    <div class="book-condition">
+                        <span class="badge <?= e($conditionMeta['class']) ?>">
+                            <?= e($conditionMeta['text']) ?>
+                        </span>
                     </div>
 
                     <div class="book-actions">
