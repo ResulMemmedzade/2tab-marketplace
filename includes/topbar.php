@@ -161,12 +161,12 @@ if ($user_id) {
 
             <a href="/books.php">Kitablar</a>
 
-            <a href="/messages.php">
-                Mesajlar
-                <?php if ($unreadMessageCount > 0): ?>
-                    (<?php echo $unreadMessageCount; ?>)
-                <?php endif; ?>
-            </a>
+            <a href="/messages.php" class="message-link">
+    Mesajlar
+    <?php if ($unreadMessageCount > 0): ?>
+        <span class="message-badge"><?php echo $unreadMessageCount; ?></span>
+    <?php endif; ?>
+</a>
 
             <a href="/contact.php">Əlaqə</a>
 
