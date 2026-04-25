@@ -108,6 +108,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         label{display:block;margin-bottom:8px;font-size:14px;font-weight:600;color:#334155;}
         input{width:100%;padding:14px 15px;border:1px solid #cbd5e1;border-radius:12px;font-size:15px;outline:none;background:#fff;}
         input:focus{border-color:#2563eb;box-shadow:0 0 0 4px rgba(37,99,235,.12);}
+        .password-wrap{position:relative;}
+.password-wrap input{padding-right:82px;}
+.toggle-password{position:absolute;right:10px;top:50%;transform:translateY(-50%);border:none;background:#eef2ff;color:#2563eb;border-radius:9px;padding:7px 9px;font-size:12px;font-weight:700;cursor:pointer;}
         .btn{width:100%;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;box-shadow:0 14px 24px rgba(37,99,235,.22);}
         .footer-text{text-align:center;margin-top:22px;font-size:14px;color:#64748b;}
         .footer-text a{color:#2563eb;text-decoration:none;font-weight:600;}
@@ -143,16 +146,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             <div class="form-group">
                 <label>Şifrə</label>
-                <input type="password" name="password" required>
+                <div class="password-wrap">
+    <input type="password" name="password" id="registerPassword" required>
+    <button type="button" class="toggle-password" data-target="registerPassword">Göstər</button>
+</div>
                 <div class="password-note">
                     Minimum 8 simvol, 1 böyük hərf, 1 kiçik hərf və 1 rəqəm.
                 </div>
             </div>
 
             <div class="form-group">
-                <label>Şifrə təkrarı</label>
-                <input type="password" name="confirm_password" required>
-            </div>
+    <label>Şifrə təkrarı</label>
+    <div class="password-wrap">
+        <input type="password" name="confirm_password" id="confirmPassword" required>
+        <button type="button" class="toggle-password" data-target="confirmPassword">Göstər</button>
+    </div>
+</div>
 
             <button type="submit" class="btn">Qeydiyyatdan keç</button>
         </form>
@@ -163,5 +172,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     </div>
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".toggle-password").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            const input = document.getElementById(btn.dataset.target);
+            const show = input.type === "password";
+            input.type = show ? "text" : "password";
+            btn.textContent = show ? "Gizlət" : "Göstər";
+        });
+    });
+});
+</script>
 </body>
 </html>
