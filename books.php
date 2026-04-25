@@ -399,8 +399,9 @@ try {
 
 .book-condition {
     margin-bottom: 12px;
-}
 
+    background: red !important; /* 🔥 TEST ÜÇÜN */
+}
 .condition-new {
     background: #dcfce7;
     color: #166534;
