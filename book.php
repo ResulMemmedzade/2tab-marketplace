@@ -257,34 +257,29 @@ if ($currentUserId) {
     }
 
     .condition-new {
-        background: #dcfce7;
-        color: #166534;
-    }
+    background: #22c55e;
+    color: white;
+}
 
-    .condition-like-new {
-        background: #dbeafe;
-        color: #1d4ed8;
-    }
+.condition-like-new {
+    background: #3b82f6;
+    color: white;
+}
 
-    .condition-good {
-        background: #e0f2fe;
-        color: #075985;
-    }
+.condition-good {
+    background: #0ea5e9;
+    color: white;
+}
 
-    .condition-fair {
-        background: #ffedd5;
-        color: #c2410c;
-    }
+.condition-fair {
+    background: #f97316;
+    color: white;
+}
 
-    .condition-poor {
-        background: #fee2e2;
-        color: #b91c1c;
-    }
-
-    .condition-default {
-        background: #e2e8f0;
-        color: #334155;
-    }
+.condition-poor {
+    background: #ef4444;
+    color: white;
+}
 
     .meta-grid {
         display: grid;
