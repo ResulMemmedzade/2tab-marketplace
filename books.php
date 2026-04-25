@@ -400,36 +400,36 @@ try {
 .book-condition {
     margin-bottom: 12px;
 
-    background: red !important; /* 🔥 TEST ÜÇÜN */
+    
 }
 .condition-new {
-    background: #dcfce7;
-    color: #166534;
+    background: #22c55e;
+    color: white;
 }
 
 .condition-like-new {
-    background: #dbeafe;
-    color: #1d4ed8;
+    background: #3b82f6;
+    color: white;
 }
 
 .condition-good {
-    background: #e0f2fe;
-    color: #075985;
+    background: #0ea5e9;
+    color: white;
 }
 
 .condition-fair {
-    background: #ffedd5;
-    color: #c2410c;
+    background: #f97316;
+    color: white;
 }
 
 .condition-poor {
-    background: #fee2e2;
-    color: #b91c1c;
+    background: #ef4444;
+    color: white;
 }
 
 .condition-default {
-    background: #e2e8f0;
-    color: #334155;
+    background: #64748b;
+    color: white;
 }
 
     .book-actions {
