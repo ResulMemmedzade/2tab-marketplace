@@ -425,7 +425,7 @@ $userName = $_SESSION["name"] ?? "";
     }
 
     .badge {
-        display: inline-block;
+        display: inline-flex;
         width: auto;
         max-width: 100%;
         white-space: nowrap;
