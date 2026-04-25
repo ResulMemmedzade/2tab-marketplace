@@ -106,7 +106,8 @@ $stmt->execute([$conversationId, $currentUserId]);
             color: #1e293b;
         }
 
-        #chatImage {
+        #galleryImage,
+        #cameraImage {
             display: none;
         }
 
@@ -196,6 +197,7 @@ $stmt->execute([$conversationId, $currentUserId]);
 
         .message-bubble {
             position: relative;
+            min-width: 105px;
             max-width: min(72%, 520px);
             padding: 12px 14px 24px;
             border-radius: 16px;
@@ -228,6 +230,7 @@ $stmt->execute([$conversationId, $currentUserId]);
 
         .message-bubble.image-bubble {
             width: auto;
+            min-width: 120px;
             max-width: 256px;
             padding: 8px 8px 24px;
             overflow: hidden;
@@ -489,6 +492,48 @@ $stmt->execute([$conversationId, $currentUserId]);
             transform: none;
         }
 
+        .attach-wrap {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .attach-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            bottom: 56px;
+            width: 155px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 8px;
+            box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16);
+            z-index: 80;
+        }
+
+        .attach-menu.is-open {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .attach-option {
+            border: none;
+            background: #f8fafc;
+            color: #0f172a;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .attach-option:hover {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
         .image-modal {
             display: none;
             position: fixed;
@@ -580,9 +625,13 @@ $stmt->execute([$conversationId, $currentUserId]);
                 gap: 12px;
             }
 
-            .message-bubble { max-width: 85%; }
+            .message-bubble {
+                min-width: 105px;
+                max-width: 85%;
+            }
 
             .message-bubble.image-bubble {
+                min-width: 120px;
                 max-width: 240px;
                 padding: 7px 7px 24px;
             }
@@ -721,9 +770,18 @@ $stmt->execute([$conversationId, $currentUserId]);
                         required
                     ></textarea>
 
-                    <input type="file" name="image" id="chatImage" accept="image/*">
+                    <input type="file" name="image" id="galleryImage" accept="image/*">
+                    <input type="file" name="image" id="cameraImage" accept="image/*" capture="environment">
 
-                    <button type="button" class="send-btn" id="imageBtn" aria-label="Şəkil">📷</button>
+                    <div class="attach-wrap">
+                        <button type="button" class="send-btn" id="imageBtn" aria-label="Fayl əlavə et">📎</button>
+
+                        <div class="attach-menu" id="attachMenu">
+                            <button type="button" class="attach-option" id="chooseGallery">🖼️ Qalereya</button>
+                            <button type="button" class="attach-option" id="chooseCamera">📷 Kamera</button>
+                        </div>
+                    </div>
+
                     <button type="button" class="send-btn" id="sendBtn" aria-label="Göndər">➤</button>
                 </div>
             </form>
@@ -753,7 +811,12 @@ const sendBtn = document.getElementById("sendBtn");
 const chatError = document.getElementById("chatError");
 
 const imageBtn = document.getElementById("imageBtn");
-const chatImage = document.getElementById("chatImage");
+const galleryImage = document.getElementById("galleryImage");
+const cameraImage = document.getElementById("cameraImage");
+const attachMenu = document.getElementById("attachMenu");
+const chooseGallery = document.getElementById("chooseGallery");
+const chooseCamera = document.getElementById("chooseCamera");
+
 const imagePreview = document.getElementById("imagePreview");
 const previewImage = document.getElementById("previewImage");
 const previewName = document.getElementById("previewName");
@@ -1008,10 +1071,46 @@ function clearImagePreview() {
         selectedImagePreviewUrl = null;
     }
 
-    if (chatImage) chatImage.value = "";
+    if (galleryImage) galleryImage.value = "";
+    if (cameraImage) cameraImage.value = "";
     if (previewImage) previewImage.src = "";
     if (previewName) previewName.textContent = "";
     if (imagePreview) imagePreview.style.display = "none";
+}
+
+function handleImageSelection(input) {
+    hideError();
+
+    if (!input.files || !input.files.length) {
+        clearImagePreview();
+        return;
+    }
+
+    const file = input.files[0];
+
+    if (!file.type.startsWith("image/")) {
+        clearImagePreview();
+        showError("Yalnız şəkil faylı seçilə bilər.");
+        return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+        clearImagePreview();
+        showError("Şəkil maksimum 10 MB ola bilər.");
+        return;
+    }
+
+    selectedImageFile = file;
+
+    if (selectedImagePreviewUrl) {
+        URL.revokeObjectURL(selectedImagePreviewUrl);
+    }
+
+    selectedImagePreviewUrl = URL.createObjectURL(file);
+
+    previewImage.src = selectedImagePreviewUrl;
+    previewName.textContent = file.name || "camera-image.jpg";
+    imagePreview.style.display = "flex";
 }
 
 async function sendMessage() {
@@ -1271,46 +1370,71 @@ if (sendBtn) {
     }, { passive: false });
 }
 
-if (imageBtn && chatImage) {
-    imageBtn.addEventListener("click", function () {
-        chatImage.click();
-    });
-
-    chatImage.addEventListener("change", function () {
-        hideError();
-
-        if (!chatImage.files || !chatImage.files.length) {
-            clearImagePreview();
-            return;
-        }
-
-        const file = chatImage.files[0];
-
-        if (!file.type.startsWith("image/")) {
-            clearImagePreview();
-            showError("Yalnız şəkil faylı seçilə bilər.");
-            return;
-        }
-
-        if (file.size > 10 * 1024 * 1024) {
-            clearImagePreview();
-            showError("Şəkil maksimum 10 MB ola bilər.");
-            return;
-        }
-
-        selectedImageFile = file;
-
-        if (selectedImagePreviewUrl) {
-            URL.revokeObjectURL(selectedImagePreviewUrl);
-        }
-
-        selectedImagePreviewUrl = URL.createObjectURL(file);
-
-        previewImage.src = selectedImagePreviewUrl;
-        previewName.textContent = file.name;
-        imagePreview.style.display = "flex";
+if (imageBtn && attachMenu) {
+    imageBtn.addEventListener("click", function (event) {
+        event.preventDefault();
+        attachMenu.classList.toggle("is-open");
     });
 }
+
+if (chooseGallery && galleryImage) {
+    chooseGallery.addEventListener("click", function () {
+        attachMenu.classList.remove("is-open");
+        galleryImage.click();
+    });
+
+    galleryImage.addEventListener("change", function () {
+        handleImageSelection(galleryImage);
+    });
+}
+
+if (chooseCamera && cameraImage) {
+    chooseCamera.addEventListener("click", function () {
+        attachMenu.classList.remove("is-open");
+        cameraImage.click();
+    });
+
+    cameraImage.addEventListener("change", function () {
+        handleImageSelection(cameraImage);
+    });
+}
+
+document.addEventListener("click", function (event) {
+    if (
+        attachMenu &&
+        imageBtn &&
+        !attachMenu.contains(event.target) &&
+        !imageBtn.contains(event.target)
+    ) {
+        attachMenu.classList.remove("is-open");
+    }
+
+    const saveBtn = event.target.closest(".js-save-edit");
+    if (saveBtn) {
+        saveEdit(saveBtn);
+        return;
+    }
+
+    const cancelBtn = event.target.closest(".js-cancel-edit");
+    if (cancelBtn) {
+        const editBox = cancelBtn.closest(".edit-box");
+        if (editBox) {
+            editBox.style.display = "none";
+        }
+        return;
+    }
+
+    const img = event.target.closest(".js-full-image");
+    if (img && imageModal && modalImage) {
+        if (didLongPress) {
+            didLongPress = false;
+            return;
+        }
+
+        modalImage.src = img.src;
+        imageModal.classList.add("is-open");
+    }
+});
 
 if (sendImageBtn) {
     sendImageBtn.addEventListener("click", function () {
@@ -1341,34 +1465,6 @@ if (selectionCancelBtn) {
         clearSelection();
     });
 }
-
-document.addEventListener("click", function (event) {
-    const saveBtn = event.target.closest(".js-save-edit");
-    if (saveBtn) {
-        saveEdit(saveBtn);
-        return;
-    }
-
-    const cancelBtn = event.target.closest(".js-cancel-edit");
-    if (cancelBtn) {
-        const editBox = cancelBtn.closest(".edit-box");
-        if (editBox) {
-            editBox.style.display = "none";
-        }
-        return;
-    }
-
-    const img = event.target.closest(".js-full-image");
-    if (img && imageModal && modalImage) {
-        if (didLongPress) {
-            didLongPress = false;
-            return;
-        }
-
-        modalImage.src = img.src;
-        imageModal.classList.add("is-open");
-    }
-});
 
 if (closeImageModal) {
     closeImageModal.addEventListener("click", function () {
