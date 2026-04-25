@@ -99,7 +99,9 @@ $stmt->execute([$conversationId, $currentUserId]);
             height: 100%;
             overflow: hidden;
         }
-
+        #chatImage {
+    display: none;
+}
         body {
             font-family: Arial, sans-serif;
             background: #f8fafc;
@@ -223,12 +225,11 @@ $stmt->execute([$conversationId, $currentUserId]);
         }
 
         .message-bubble.image-bubble {
-            width: fit-content;
-            max-width: min(82%, 280px);
-            padding: 8px;
-            overflow: hidden;
-        }
-
+    width: auto;
+    max-width: 256px;
+    padding: 8px;
+    overflow: hidden;
+}
         .message-meta {
             font-size: 12px;
             margin-bottom: 8px;
@@ -237,6 +238,19 @@ $stmt->execute([$conversationId, $currentUserId]);
             gap: 6px;
             flex-wrap: wrap;
             align-items: center;
+            .image-bubble .message-meta {
+    max-width: 224px;
+    overflow: hidden;
+    white-space: nowrap;
+    flex-wrap: nowrap;
+}
+
+.image-bubble .message-author {
+    max-width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
         }
 
         .message-author { font-weight: 700; }
@@ -244,16 +258,16 @@ $stmt->execute([$conversationId, $currentUserId]);
         .message-status { opacity: 0.9; font-size: 12px; }
 
         .chat-image {
-            display: block;
-            max-width: 240px;
-            max-height: 320px;
-            width: auto;
-            height: auto;
-            border-radius: 12px;
-            object-fit: contain;
-            cursor: pointer;
-            background: transparent;
-        }
+    display: block;
+    width: 100%;
+    max-width: 240px;
+    max-height: 320px;
+    height: auto;
+    border-radius: 12px;
+    object-fit: contain;
+    cursor: pointer;
+    background: transparent;
+}
 
         .message-text {
             white-space: normal;
@@ -707,7 +721,7 @@ $stmt->execute([$conversationId, $currentUserId]);
                         required
                     ></textarea>
 
-                    <input type="file" name="image" id="chatImage" style="display:none;" accept="image/*">
+                    <input type="file" name="image" id="chatImage" accept="image/*">
 
                     <button type="button" class="send-btn" id="imageBtn" aria-label="Şəkil">📷</button>
                     <button type="button" class="send-btn" id="sendBtn" aria-label="Göndər">➤</button>
@@ -1414,11 +1428,9 @@ window.addEventListener("resize", function () {
 
 if (window.visualViewport) {
     window.visualViewport.addEventListener("resize", function () {
-        keepComposerVisible();
-    });
-
-    window.visualViewport.addEventListener("scroll", function () {
-        keepComposerVisible();
+        setTimeout(() => {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 250);
     });
 }
 </script>
