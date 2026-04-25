@@ -192,7 +192,7 @@ if ($user_id) {
             <a href="/contact.php">Əlaqə</a>
 
             <?php if ($is_admin): ?>
-                <a href="/admin/dashboard.php">Admin</a>
+                <a href="/admin.php">Admin</a>
             <?php endif; ?>
         </div>
 
