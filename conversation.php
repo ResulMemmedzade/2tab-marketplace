@@ -99,13 +99,15 @@ $stmt->execute([$conversationId, $currentUserId]);
             height: 100%;
             overflow: hidden;
         }
-        #chatImage {
-    display: none;
-}
+
         body {
             font-family: Arial, sans-serif;
             background: #f8fafc;
             color: #1e293b;
+        }
+
+        #chatImage {
+            display: none;
         }
 
         .chat-page {
@@ -174,7 +176,7 @@ $stmt->execute([$conversationId, $currentUserId]);
             min-height: 0;
             overflow-y: auto;
             overflow-x: hidden;
-            padding: 18px 18px 12px;
+            padding: 18px;
             display: flex;
             flex-direction: column;
             gap: 16px;
@@ -195,7 +197,7 @@ $stmt->execute([$conversationId, $currentUserId]);
         .message-bubble {
             position: relative;
             max-width: min(72%, 520px);
-            padding: 12px 14px;
+            padding: 12px 14px 24px;
             border-radius: 16px;
             line-height: 1.6;
             box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
@@ -225,52 +227,54 @@ $stmt->execute([$conversationId, $currentUserId]);
         }
 
         .message-bubble.image-bubble {
-    width: auto;
-    max-width: 256px;
-    padding: 8px;
-    overflow: hidden;
-}
-        .message-meta {
-            font-size: 12px;
-            margin-bottom: 8px;
-            opacity: 0.88;
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            align-items: center;
-            .image-bubble .message-meta {
-    max-width: 224px;
-    overflow: hidden;
-    white-space: nowrap;
-    flex-wrap: nowrap;
-}
-
-.image-bubble .message-author {
-    max-width: 90px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
+            width: auto;
+            max-width: 256px;
+            padding: 8px 8px 24px;
+            overflow: hidden;
         }
-
-        .message-author { font-weight: 700; }
-        .message-time { opacity: 0.92; }
-        .message-status { opacity: 0.9; font-size: 12px; }
-
-        .chat-image {
-    display: block;
-    width: 100%;
-    max-width: 240px;
-    max-height: 320px;
-    height: auto;
-    border-radius: 12px;
-    object-fit: contain;
-    cursor: pointer;
-    background: transparent;
-}
 
         .message-text {
             white-space: normal;
+        }
+
+        .message-footer {
+            position: absolute;
+            right: 10px;
+            bottom: 5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            line-height: 1;
+            opacity: 0.82;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        .message-row.other .message-footer {
+            color: #64748b;
+        }
+
+        .message-row.mine .message-footer {
+            color: rgba(255,255,255,0.9);
+        }
+
+        .message-check {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: -2px;
+        }
+
+        .chat-image {
+            display: block;
+            width: 100%;
+            max-width: 240px;
+            max-height: 320px;
+            height: auto;
+            border-radius: 12px;
+            object-fit: contain;
+            cursor: pointer;
+            background: transparent;
         }
 
         .edit-box {
@@ -572,19 +576,19 @@ $stmt->execute([$conversationId, $currentUserId]);
             .chat-header-text p { font-size: 12px; }
 
             .chat-messages {
-                padding: 14px 14px 10px;
+                padding: 14px;
                 gap: 12px;
             }
 
             .message-bubble { max-width: 85%; }
 
             .message-bubble.image-bubble {
-                max-width: 78%;
-                padding: 7px;
+                max-width: 240px;
+                padding: 7px 7px 24px;
             }
 
             .chat-image {
-                max-width: 210px;
+                max-width: 226px;
                 max-height: 280px;
             }
 
@@ -639,7 +643,7 @@ $stmt->execute([$conversationId, $currentUserId]);
                         $isMine = (int)$msg["sender_id"] === $currentUserId;
                         $messageType = $msg["message_type"] ?? "text";
                         $isRead = (int)($msg["is_read"] ?? 0) === 1;
-                        $messageStatus = $isRead ? "Oxundu ✓✓" : "Göndərildi ✓";
+                        $checkMark = $isRead ? "✓✓" : "✓";
                         $bubbleClass = $messageType === "image" ? "message-bubble image-bubble" : "message-bubble";
                         $canEdit = $isMine && $messageType === "text" && !$isRead;
                         $canDelete = $isMine;
@@ -653,17 +657,6 @@ $stmt->execute([$conversationId, $currentUserId]);
                             data-can-edit="<?php echo $canEdit ? '1' : '0'; ?>"
                             data-can-delete="<?php echo $canDelete ? '1' : '0'; ?>"
                         >
-                            <div class="message-meta">
-                                <span class="message-author"><?php echo e($msg["name"] ?? "İstifadəçi"); ?></span>
-                                <span>•</span>
-                                <span class="message-time"><?php echo e(formatRelativeTime($msg["created_at"] ?? "")); ?></span>
-
-                                <?php if ($isMine): ?>
-                                    <span>•</span>
-                                    <span class="message-status"><?php echo e($messageStatus); ?></span>
-                                <?php endif; ?>
-                            </div>
-
                             <?php if ($messageType === "image"): ?>
                                 <img
                                     src="<?php echo e(basePath('uploads/' . ltrim((string)$msg["message"], '/'))); ?>"
@@ -683,6 +676,13 @@ $stmt->execute([$conversationId, $currentUserId]);
                                     </div>
                                 <?php endif; ?>
                             <?php endif; ?>
+
+                            <div class="message-footer">
+                                <span class="message-time"><?php echo e(formatRelativeTime($msg["created_at"] ?? "")); ?></span>
+                                <?php if ($isMine): ?>
+                                    <span class="message-check"><?php echo e($checkMark); ?></span>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -777,30 +777,20 @@ let didLongPress = false;
 
 const csrfToken = <?php echo json_encode(csrfToken()); ?>;
 const conversationId = <?php echo (int)$conversationId; ?>;
-const myName = <?php echo json_encode($_SESSION["name"] ?? $_SESSION["user_name"] ?? "Siz"); ?>;
 
 function scrollToBottom(force = false) {
     if (!chatMessages) return;
 
-    requestAnimationFrame(function () {
-        if (force) {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-            return;
-        }
+    if (force) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        return;
+    }
 
-        const distanceFromBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight;
+    const distanceFromBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight;
 
-        if (distanceFromBottom < 180) {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-    });
-}
-
-function keepComposerVisible() {
-    scrollToBottom(true);
-    setTimeout(() => scrollToBottom(true), 80);
-    setTimeout(() => scrollToBottom(true), 220);
-    setTimeout(() => scrollToBottom(true), 420);
+    if (distanceFromBottom < 150) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
 }
 
 function autoResizeTextarea() {
@@ -815,7 +805,6 @@ function showError(message) {
 
     chatError.textContent = message;
     chatError.style.display = "block";
-    keepComposerVisible();
 }
 
 function hideError() {
@@ -926,7 +915,7 @@ function bindAllLongPress() {
     document.querySelectorAll(".message-bubble").forEach(bindLongPressToBubble);
 }
 
-function appendMessage(messageText, timeText, authorName, messageId = "", canEdit = true) {
+function appendMessage(messageText, timeText, messageId = "", canEdit = true) {
     if (!chatMessages) return;
 
     removeEmptyChat();
@@ -941,19 +930,11 @@ function appendMessage(messageText, timeText, authorName, messageId = "", canEdi
     bubble.dataset.canEdit = canEdit ? "1" : "0";
     bubble.dataset.canDelete = "1";
 
-    const meta = document.createElement("div");
-    meta.className = "message-meta";
-    meta.innerHTML = `
-        <span class="message-author">${escapeHtml(authorName)}</span>
-        <span>•</span>
-        <span class="message-time">${escapeHtml(timeText)}</span>
-        <span>•</span>
-        <span class="message-status">Göndərildi ✓</span>
-    `;
-
     const text = document.createElement("div");
     text.className = "message-text";
     text.innerHTML = nl2br(messageText);
+
+    bubble.appendChild(text);
 
     if (canEdit) {
         const editBox = document.createElement("div");
@@ -965,14 +946,17 @@ function appendMessage(messageText, timeText, authorName, messageId = "", canEdi
                 <button type="button" class="message-action-btn cancel-btn js-cancel-edit">Bağla</button>
             </div>
         `;
-        bubble.appendChild(meta);
-        bubble.appendChild(text);
         bubble.appendChild(editBox);
-    } else {
-        bubble.appendChild(meta);
-        bubble.appendChild(text);
     }
 
+    const footer = document.createElement("div");
+    footer.className = "message-footer";
+    footer.innerHTML = `
+        <span class="message-time">${escapeHtml(timeText)}</span>
+        <span class="message-check">✓</span>
+    `;
+
+    bubble.appendChild(footer);
     row.appendChild(bubble);
     chatMessages.appendChild(row);
 
@@ -980,7 +964,7 @@ function appendMessage(messageText, timeText, authorName, messageId = "", canEdi
     scrollToBottom(true);
 }
 
-function appendImageMessage(imageUrl, timeText, authorName, messageId = "") {
+function appendImageMessage(imageUrl, timeText, messageId = "") {
     if (!chatMessages) return;
 
     removeEmptyChat();
@@ -995,23 +979,20 @@ function appendImageMessage(imageUrl, timeText, authorName, messageId = "") {
     bubble.dataset.canEdit = "0";
     bubble.dataset.canDelete = "1";
 
-    const meta = document.createElement("div");
-    meta.className = "message-meta";
-    meta.innerHTML = `
-        <span class="message-author">${escapeHtml(authorName)}</span>
-        <span>•</span>
-        <span class="message-time">${escapeHtml(timeText)}</span>
-        <span>•</span>
-        <span class="message-status">Göndərildi ✓</span>
-    `;
-
     const img = document.createElement("img");
     img.src = imageUrl;
     img.className = "chat-image js-full-image";
     img.alt = "Göndərilən şəkil";
 
-    bubble.appendChild(meta);
+    const footer = document.createElement("div");
+    footer.className = "message-footer";
+    footer.innerHTML = `
+        <span class="message-time">${escapeHtml(timeText)}</span>
+        <span class="message-check">✓</span>
+    `;
+
     bubble.appendChild(img);
+    bubble.appendChild(footer);
     row.appendChild(bubble);
     chatMessages.appendChild(row);
 
@@ -1067,14 +1048,13 @@ async function sendMessage() {
             appendMessage(
                 data.raw_message || message,
                 data.time || "indi",
-                myName,
                 data.message_id || "",
                 true
             );
 
             messageInput.value = "";
             autoResizeTextarea();
-            keepComposerVisible();
+            scrollToBottom(true);
         } else {
             showError((data && data.message) ? data.message : "Mesaj göndərilərkən xəta baş verdi.");
         }
@@ -1126,9 +1106,9 @@ async function sendSelectedImage() {
             const imageUrl = data && data.image_url ? data.image_url : localPreviewUrl;
             const messageId = data && data.message_id ? data.message_id : "";
 
-            appendImageMessage(imageUrl, "indi", myName, messageId);
+            appendImageMessage(imageUrl, "indi", messageId);
             clearImagePreview();
-            keepComposerVisible();
+            scrollToBottom(true);
         } else {
             showError((data && data.message) ? data.message : "Şəkil göndərilə bilmədi.");
         }
@@ -1173,7 +1153,6 @@ async function deleteSelectedMessage() {
             const row = selectedBubble.closest(".message-row");
             if (row) row.remove();
             clearSelection();
-            keepComposerVisible();
         } else {
             showError("Mesaj silinmədi.");
         }
@@ -1209,7 +1188,6 @@ function openEditForSelected() {
     }
 
     clearSelection();
-    keepComposerVisible();
 }
 
 async function saveEdit(button) {
@@ -1271,17 +1249,13 @@ window.addEventListener("load", function () {
     hideError();
     bindAllLongPress();
     autoResizeTextarea();
-    keepComposerVisible();
+    scrollToBottom(true);
 });
 
 if (messageInput) {
     messageInput.addEventListener("input", function () {
         autoResizeTextarea();
         hideError();
-    });
-
-    messageInput.addEventListener("focus", function () {
-        keepComposerVisible();
     });
 }
 
@@ -1335,8 +1309,6 @@ if (imageBtn && chatImage) {
         previewImage.src = selectedImagePreviewUrl;
         previewName.textContent = file.name;
         imagePreview.style.display = "flex";
-
-        keepComposerVisible();
     });
 }
 
@@ -1349,7 +1321,6 @@ if (sendImageBtn) {
 if (cancelImageBtn) {
     cancelImageBtn.addEventListener("click", function () {
         clearImagePreview();
-        keepComposerVisible();
     });
 }
 
@@ -1419,18 +1390,6 @@ if (chatForm) {
     chatForm.addEventListener("submit", function (event) {
         event.preventDefault();
         sendMessage();
-    });
-}
-
-window.addEventListener("resize", function () {
-    keepComposerVisible();
-});
-
-if (window.visualViewport) {
-    window.visualViewport.addEventListener("resize", function () {
-        setTimeout(() => {
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }, 250);
     });
 }
 </script>
