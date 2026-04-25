@@ -153,16 +153,16 @@ if ($user_id) {
         height: 20px;
     }
 
-    .badge {
-        position: absolute;
-        top: 4px;
-        right: 10px;
-        background: #dc2626;
-        color: #fff;
-        font-size: 10px;
-        padding: 2px 6px;
-        border-radius: 999px;
-    }
+    .topbar-nav-mobile .badge {
+    position: absolute;
+    top: 4px;
+    right: 10px;
+    background: #dc2626;
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 999px;
+}
 }
 </style>
 
