@@ -1,7 +1,6 @@
 <?php
 
-ini_set('display_errors', 0);
-error_reporting(E_ALL);
+require_once "config.php";
 
 session_set_cookie_params([
     'httponly' => true,

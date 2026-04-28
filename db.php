@@ -21,10 +21,13 @@ try {
 } catch (PDOException $e) {
     error_log('DB Error: ' . $e->getMessage());
 
+    http_response_code(500);
+
     if (defined('APP_DEBUG') && APP_DEBUG) {
-        die('DB bağlantı xətası: ' . $e->getMessage());
+        echo 'DB bağlantı xətası: ' . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
+        exit;
     }
 
-    http_response_code(500);
-    die('Sistem müvəqqəti əlçatan deyil.');
+    echo 'Sistem müvəqqəti əlçatan deyil.';
+    exit;
 }

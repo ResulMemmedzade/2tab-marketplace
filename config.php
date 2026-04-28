@@ -65,7 +65,7 @@ loadEnv(__DIR__ . '/.env');
 */
 define('APP_ENV', (string) env('APP_ENV', 'local'));
 define('APP_DEBUG', filter_var(env('APP_DEBUG', false), FILTER_VALIDATE_BOOLEAN));
-define('APP_BASE_URL', rtrim((string) env('APP_BASE_URL', '/2tab'), '/'));
+define('APP_BASE_URL', rtrim((string) env('APP_BASE_URL', ''), '/'));
 define('UPLOAD_STORAGE_PATH', (string) env('UPLOAD_STORAGE_PATH', 'C:/wamp64/2tab_uploads'));
 
 /*
@@ -74,11 +74,12 @@ define('UPLOAD_STORAGE_PATH', (string) env('UPLOAD_STORAGE_PATH', 'C:/wamp64/2ta
 |--------------------------------------------------------------------------
 */
 ini_set('log_errors', '1');
-error_reporting(E_ALL);
 
 if (APP_DEBUG) {
+    error_reporting(E_ALL);
     ini_set('display_errors', '1');
 } else {
+    error_reporting(E_ALL);
     ini_set('display_errors', '0');
 }
 
