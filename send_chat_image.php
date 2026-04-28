@@ -1,7 +1,7 @@
 <?php
 
 require_once "config.php";
-
+require_once "upload_helper.php";
 requireLogin();
 ensureCsrfToken();
 
@@ -41,44 +41,19 @@ try {
 
     $file = $_FILES["image"];
 
-    if ($file["error"] !== UPLOAD_ERR_OK) {
-        responseJson(false, "Upload error");
-    }
+$uploadDir = __DIR__ . "/uploads/chat/";
 
-    if ($file["size"] > 10 * 1024 * 1024) {
-        responseJson(false, "Max 10MB");
-    }
+[$uploadOk, $uploadMessage, $savedFileName] = saveUploadedImage(
+    $file,
+    $uploadDir,
+    10 * 1024 * 1024
+);
 
-    $uploadDir = __DIR__ . "/uploads/chat/";
+if (!$uploadOk) {
+    responseJson(false, $uploadMessage);
+}
 
-    if (!is_dir($uploadDir)) {
-        mkdir($uploadDir, 0755, true);
-    }
-
-    $finfo = finfo_open(FILEINFO_MIME_TYPE);
-    $mime = finfo_file($finfo, $file["tmp_name"]);
-    finfo_close($finfo);
-
-    $allowedMimeTypes = [
-        "image/jpeg" => "jpg",
-        "image/png"  => "png",
-        "image/webp" => "webp"
-    ];
-
-    if (!isset($allowedMimeTypes[$mime])) {
-        responseJson(false, "Invalid file type");
-    }
-
-    $extension = $allowedMimeTypes[$mime];
-    $filename = bin2hex(random_bytes(16)) . "." . $extension;
-
-    $targetPath = $uploadDir . $filename;
-
-    if (!move_uploaded_file($file["tmp_name"], $targetPath)) {
-        responseJson(false, "Şəkil serverə yüklənə bilmədi");
-    }
-
-    $dbPath = "chat/" . $filename;
+$dbPath = "chat/" . $savedFileName;
 
     $stmt = $pdo->prepare("
         INSERT INTO messages (conversation_id, sender_id, message, message_type)

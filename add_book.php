@@ -1,6 +1,7 @@
 <?php
 
 require_once "config.php";
+require_once "upload_helper.php";
 
 requireLogin();
 ensureCsrfToken();
@@ -69,55 +70,20 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         } else {
             if (isset($_FILES["image"]) && $_FILES["image"]["error"] !== UPLOAD_ERR_NO_FILE) {
                 $uploadDir = rtrim(UPLOAD_STORAGE_PATH, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0755, true);
-                }
-
-                if ($_FILES["image"]["error"] === UPLOAD_ERR_INI_SIZE || $_FILES["image"]["error"] === UPLOAD_ERR_FORM_SIZE) {
-                    appLog('upload_error', 'File too large at PHP level', [
-                        'error_code' => $_FILES["image"]["error"]
+            
+                [$uploadOk, $uploadMessage, $savedFileName] = saveUploadedImage(
+                    $_FILES["image"],
+                    $uploadDir,
+                    10 * 1024 * 1024
+                );
+            
+                if (!$uploadOk) {
+                    appLog('upload_error', 'Book image upload failed', [
+                        'message' => $uploadMessage
                     ]);
-                    $error = "Şəkil çox böyükdür. Maksimum ölçü 10 MB ola bilər.";
-                } elseif ($_FILES["image"]["error"] !== UPLOAD_ERR_OK) {
-                    appLog('upload_error', 'Generic upload error', [
-                        'error_code' => $_FILES["image"]["error"]
-                    ]);
-                    $error = "Şəkil yüklənərkən xəta baş verdi.";
+                    $error = $uploadMessage;
                 } else {
-                    $originalName = basename($_FILES["image"]["name"]);
-                    $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
-                    $allowedExtensions = ["jpg", "jpeg", "png", "webp"];
-                    $maxFileSize = 10 * 1024 * 1024;
-
-                    if (!in_array($extension, $allowedExtensions, true)) {
-                        appLog('upload_error', 'Invalid file extension', ['file' => $originalName]);
-                        $error = "Yalnız jpg, jpeg, png və webp şəkillər qəbul olunur.";
-                    } elseif (($_FILES["image"]["size"] ?? 0) > $maxFileSize) {
-                        appLog('upload_error', 'File too large', ['size' => $_FILES["image"]["size"] ?? null]);
-                        $error = "Şəkilin ölçüsü maksimum 10 MB ola bilər.";
-                    } else {
-                        $finfo = finfo_open(FILEINFO_MIME_TYPE);
-                        $mimeType = finfo_file($finfo, $_FILES["image"]["tmp_name"]);
-                        finfo_close($finfo);
-
-                        $allowedMimeTypes = ["image/jpeg", "image/png", "image/webp"];
-
-                        if (!in_array($mimeType, $allowedMimeTypes, true)) {
-                            appLog('upload_error', 'Invalid MIME type', ['mime' => $mimeType]);
-                            $error = "Fayl tipi düzgün deyil.";
-                        } else {
-                            $safeFileName = bin2hex(random_bytes(16)) . "." . $extension;
-                            $targetPath = $uploadDir . $safeFileName;
-
-                            if (move_uploaded_file($_FILES["image"]["tmp_name"], $targetPath)) {
-                                $imageName = $safeFileName;
-                            } else {
-                                appLog('upload_error', 'Failed to move uploaded file', ['file' => $originalName]);
-                                $error = "Şəkil serverə yüklənə bilmədi.";
-                            }
-                        }
-                    }
+                    $imageName = $savedFileName;
                 }
             }
 

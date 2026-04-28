@@ -1,6 +1,7 @@
 <?php
 
 require_once "config.php";
+require_once "upload_helper.php";
 
 requireLogin();
 ensureCsrfToken();
@@ -77,37 +78,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $newImageName = $currentImage;
 
         if (!empty($_FILES["image"]["name"])) {
-
             $uploadDir = rtrim(UPLOAD_STORAGE_PATH, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-
-            if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0755, true);
-            }
-
-            $extension = strtolower(pathinfo($_FILES["image"]["name"], PATHINFO_EXTENSION));
-            $allowedExtensions = ["jpg", "jpeg", "png", "webp"];
-
-            if (!in_array($extension, $allowedExtensions, true)) {
-                $error = "Şəkil tipi düzgün deyil.";
+        
+            [$uploadOk, $uploadMessage, $savedFileName] = saveUploadedImage(
+                $_FILES["image"],
+                $uploadDir,
+                10 * 1024 * 1024
+            );
+        
+            if (!$uploadOk) {
+                $error = $uploadMessage;
             } else {
-
-                $safeFileName = bin2hex(random_bytes(16)) . "." . $extension;
-                $targetPath = $uploadDir . $safeFileName;
-
-                if (move_uploaded_file($_FILES["image"]["tmp_name"], $targetPath)) {
-
-                    if ($currentImage) {
-                        $oldPath = $uploadDir . $currentImage;
-                        if (file_exists($oldPath)) {
-                            unlink($oldPath);
-                        }
+                if ($currentImage) {
+                    $oldPath = $uploadDir . basename($currentImage);
+                    if (is_file($oldPath)) {
+                        unlink($oldPath);
                     }
-
-                    $newImageName = $safeFileName;
-
-                } else {
-                    $error = "Şəkil yüklənə bilmədi.";
                 }
+        
+                $newImageName = $savedFileName;
             }
         }
 
