@@ -42,8 +42,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $language = trim($_POST["language"] ?? "");
     $book_condition = $_POST["book_condition"] ?? "good";
     $published_year = trim($_POST["published_year"] ?? "");
-    $status = $_POST["status"] ?? "active";
-
     $currentImage = $book["image"] ?? null;
 
     $allowedConditions = ["new", "like_new", "good", "fair", "poor"];
@@ -52,7 +50,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         "Bədii","Elmi","Təhsil","Uşaq","Şəxsi inkişaf","Biznes",
         "Tarix","Din","Psixologiya","Roman","Detektiv","Fantastika",""
     ];
-    $allowedStatuses = ["active", "sold", "hidden"];
 
     if ($title === "" || $author === "" || $price === "") {
         $error = "Kitab adı, müəllif və qiymət mütləqdir.";
@@ -64,8 +61,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $error = "Dil düzgün deyil.";
     } elseif (!in_array($book_condition, $allowedConditions, true)) {
         $error = "Vəziyyət düzgün deyil.";
-    } elseif (!in_array($status, $allowedStatuses, true)) {
-        $error = "Status düzgün deyil.";
+    
     } elseif (
         $published_year !== "" &&
         (!ctype_digit($published_year) ||
@@ -104,10 +100,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             $stmt = $pdo->prepare("
                 UPDATE books SET
-                    title=?, author=?, description=?, price=?,
-                    image=?, genre=?, language=?, book_condition=?,
-                    published_year=?, status=?
-                WHERE id=? AND seller_id=?
+    title=?, author=?, description=?, price=?,
+    image=?, genre=?, language=?, book_condition=?,
+    published_year=?
+WHERE id=? AND seller_id=?
             ");
 
             $stmt->execute([
@@ -120,7 +116,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 $language ?: null,
                 $book_condition,
                 $published_year ?: null,
-                $status,
+                
                 $id,
                 $seller_id
             ]);
@@ -422,14 +418,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label for="status">Status</label>
-                    <select id="status" name="status">
-                        <option value="active" <?php echo $book["status"] === "active" ? "selected" : ""; ?>>Aktiv</option>
-                        <option value="sold" <?php echo $book["status"] === "sold" ? "selected" : ""; ?>>Satılıb</option>
-                        <option value="hidden" <?php echo $book["status"] === "hidden" ? "selected" : ""; ?>>Gizli</option>
-                    </select>
-                </div>
+                
 
                 <button type="submit" class="btn">Yenilə</button>
             </form>

@@ -69,8 +69,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     } else {
 
         $stmt = $pdo->prepare("
-            SELECT id, name, email, role, password_hash
-            FROM users
+            SELECT id, name, email, role, password_hash, status, ban_expires_at
+FROM users
             WHERE email = ? OR name = ?
             LIMIT 1
         ");
@@ -79,29 +79,73 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($user && password_verify($password, $user["password_hash"])) {
 
-            clearRateLimit($pdo, $rateKey);
-            unset($_SESSION['rate_limit_notice'][$rateKey]);
-
-            session_regenerate_id(true);
-
-            $_SESSION["user_id"] = (int)$user["id"];
-            $_SESSION["name"] = $user["name"];
-            $_SESSION["email"] = $user["email"];
-            $_SESSION["role"] = $user["role"];
-
-            appLog('login_success', 'User logged in successfully', [
-                'user_id' => $user["id"],
-                'email' => $user["email"]
-            ]);
-
-            // 🔥 PRIORITY: return_to → redirect param → fallback
-            $target = pullReturnTo(basePath("dashboard.php"));
-
-            if ($redirect && isSafeRedirect($redirect)) {
-                $target = $redirect;
+            if (($user["status"] ?? "active") === "banned") {
+                $error = "Hesabınız bloklanıb. Əgər bunun səhv olduğunu düşünürsünüzsə, adminlə əlaqə saxlayın.";
+        
+                appLog('login_blocked', 'Banned user tried to login', [
+                    'user_id' => $user["id"],
+                    'email' => $user["email"],
+                    'status' => $user["status"],
+                ]);
+        
+            } elseif (($user["status"] ?? "active") === "temp_banned") {
+        
+                if (!empty($user["ban_expires_at"]) && strtotime($user["ban_expires_at"]) > time()) {
+                    $remainingMinutes = ceil((strtotime($user["ban_expires_at"]) - time()) / 60);
+                    $error = "Hesabınız müvəqqəti bloklanıb. Təxminən {$remainingMinutes} dəqiqə sonra yenidən yoxlayın.";
+        
+                    appLog('login_blocked', 'Temp banned user tried to login', [
+                        'user_id' => $user["id"],
+                        'email' => $user["email"],
+                        'ban_expires_at' => $user["ban_expires_at"],
+                    ]);
+                } else {
+                    $activateStmt = $pdo->prepare("
+                        UPDATE users
+                        SET status = 'active',
+                            ban_expires_at = NULL
+                        WHERE id = ?
+                    ");
+                    $activateStmt->execute([(int)$user["id"]]);
+        
+                    clearRateLimit($pdo, $rateKey);
+                    unset($_SESSION['rate_limit_notice'][$rateKey]);
+        
+                    session_regenerate_id(true);
+        
+                    $_SESSION["user_id"] = (int)$user["id"];
+                    $_SESSION["name"] = $user["name"];
+                    $_SESSION["email"] = $user["email"];
+                    $_SESSION["role"] = $user["role"];
+        
+                    redirectTo("dashboard.php");
+                }
+        
+            } else {
+        
+                clearRateLimit($pdo, $rateKey);
+                unset($_SESSION['rate_limit_notice'][$rateKey]);
+        
+                session_regenerate_id(true);
+        
+                $_SESSION["user_id"] = (int)$user["id"];
+                $_SESSION["name"] = $user["name"];
+                $_SESSION["email"] = $user["email"];
+                $_SESSION["role"] = $user["role"];
+        
+                appLog('login_success', 'User logged in successfully', [
+                    'user_id' => $user["id"],
+                    'email' => $user["email"]
+                ]);
+        
+                $target = pullReturnTo(basePath("dashboard.php"));
+        
+                if ($redirect && isSafeRedirect($redirect)) {
+                    $target = $redirect;
+                }
+        
+                redirect($target);
             }
-
-            redirect($target);
 
         } else {
 

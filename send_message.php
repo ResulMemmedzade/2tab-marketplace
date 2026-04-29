@@ -102,7 +102,7 @@ try {
             'conversation_id' => $conversationId,
             'remaining_seconds' => $remainingSeconds
         ]);
-
+        addUserStrike($pdo, $currentUserId, 'Mesaj spamı: qısa müddətdə çox mesaj göndərmə');
         echo json_encode([
             'success' => false,
             'message' => "Çox tez-tez mesaj göndərirsiniz. {$remainingSeconds} saniyə sonra yenidən cəhd edin."
@@ -120,7 +120,7 @@ try {
             'conversation_id' => $conversationId,
             'remaining_seconds' => $remainingSeconds
         ]);
-
+        addUserStrike($pdo, $currentUserId, 'Mesaj spamı: limit keçildi');
         echo json_encode([
             'success' => false,
             'message' => "Mesaj limiti keçildi. {$remainingSeconds} saniyə sonra yenidən cəhd edin."

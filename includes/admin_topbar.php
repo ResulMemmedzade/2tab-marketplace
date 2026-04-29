@@ -1,7 +1,6 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../config.php';
+
 ?>
 
 <style>
@@ -39,14 +38,14 @@ if (session_status() === PHP_SESSION_NONE) {
 </style>
 
 <div class="topbar">
-    <a href="/index.php" class="brand">
-        <img src="/logo.png" alt="2tab loqosu" class="brand-logo">
+    <a href="<?= e(basePath('index.php')) ?>" class="brand">
+        <img src="<?= e(basePath('logo.png')) ?>" alt="2tab loqosu" class="brand-logo">
     </a>
 
     <div>
-        <a href="/dashboard.php">Dashboard</a>
-        <a href="/admin_books.php">Kitablar</a>
-        <a href="/admin_users.php">İstifadəçilər</a>
-        <a href="/logout.php">Çıxış</a>
+        <a href="<?= e(basePath('dashboard.php')) ?>">Dashboard</a>
+        <a href="<?= e(basePath('admin_books.php')) ?>">Kitablar</a>
+        <a href="<?= e(basePath('admin_users.php')) ?>">İstifadəçilər</a>
+        <a href="<?= e(basePath('logout.php')) ?>">Çıxış</a>
     </div>
 </div>

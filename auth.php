@@ -34,19 +34,16 @@ if (!function_exists('requireLogin')) {
     function requireLogin(?string $fallback = null): void
     {
         if (isLoggedIn()) {
+            global $pdo;
+
+            if (function_exists('enforceUserStatus')) {
+                enforceUserStatus($pdo);
+            }
+
             return;
         }
 
         setReturnTo($fallback);
-
-        if (function_exists('appLog')) {
-            appLog('suspicious_activity', 'Unauthorized access attempt (not logged in)', [
-                'ip' => $_SERVER['REMOTE_ADDR'] ?? null,
-                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null,
-                'request_uri' => $_SERVER['REQUEST_URI'] ?? null,
-                'created_at' => date('Y-m-d H:i:s'),
-            ]);
-        }
 
         flashError('Davam etmək üçün giriş edin.');
         redirectTo('login.php');

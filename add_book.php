@@ -21,6 +21,34 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     try {
         verifyCsrfToken($_POST['csrf_token'] ?? null);
 
+        $user_id = currentUserId();
+        $seller_id = $user_id;
+        $status = "active";
+        $imageName = null;
+
+        // 🔥 BOOK SPAM CHECK
+        if ($error === "") {
+            $stmt = $pdo->prepare("
+                SELECT COUNT(*)
+                FROM books
+                WHERE seller_id = ?
+                  AND created_at >= DATE_SUB(NOW(), INTERVAL 1 HOUR)
+            ");
+            $stmt->execute([$user_id]);
+            $recentBookCount = (int)$stmt->fetchColumn();
+
+            if ($recentBookCount >= 20) {
+                addUserStrike($pdo, $user_id, 'Kitab spamı: 1 saatda çox sayda kitab əlavə etmə');
+
+                appLog('rate_limit', 'Book spam detected', [
+                    'user_id' => $user_id,
+                    'recent_books' => $recentBookCount
+                ]);
+
+                $error = "Çox sayda kitab əlavə etdiniz. Bir az sonra yenidən yoxlayın.";
+            }
+        }
+
         $title = trim($_POST["title"] ?? "");
         $author = trim($_POST["author"] ?? "");
         $description = trim($_POST["description"] ?? "");
@@ -31,10 +59,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $book_condition = $_POST["book_condition"] ?? "good";
         $published_year = trim($_POST["published_year"] ?? "");
 
-        $user_id = currentUserId();
-        $seller_id = $user_id;
-        $status = "active";
-        $imageName = null;
+        // 🔥 XSS CHECK
+        if ($error === "") {
+            if (
+                containsSuspiciousPayload($title) ||
+                containsSuspiciousPayload($author) ||
+                containsSuspiciousPayload($description)
+            ) {
+                addUserStrike($pdo, $user_id, 'XSS attempt in book');
+
+                appLog('security', 'XSS payload detected in book form', [
+                    'user_id' => $user_id
+                ]);
+
+                $error = "Təhlükəli məzmun aşkar edildi.";
+            }
+        }
 
         $allowedConditions = ["new", "like_new", "good", "fair", "poor"];
         $allowedLanguages = ["Azərbaycan", "İngilis", "Rus", "Türk", ""];
@@ -44,81 +84,87 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         ];
         $allowedStatuses = ["active", "sold", "hidden"];
 
-        if ($title === "" || $author === "" || $price === "") {
-            $error = "Kitab adı, müəllif və qiymət mütləqdir.";
-        } elseif (!preg_match('/^\d+(\.\d{1,2})?$/', $price) || (float)$price < 0) {
-            appLog('input_validation', 'Invalid price format', ['price' => $price]);
-            $error = "Qiymət düzgün daxil edilməyib.";
-        } elseif (!in_array($genre, $allowedGenres, true)) {
-            appLog('input_validation', 'Invalid genre', ['genre' => $genre]);
-            $error = "Janr düzgün seçilməyib.";
-        } elseif (!in_array($language, $allowedLanguages, true)) {
-            appLog('input_validation', 'Invalid language', ['language' => $language]);
-            $error = "Dil düzgün seçilməyib.";
-        } elseif (!in_array($book_condition, $allowedConditions, true)) {
-            appLog('input_validation', 'Invalid condition', ['condition' => $book_condition]);
-            $error = "Kitab vəziyyəti düzgün deyil.";
-        } elseif (!in_array($status, $allowedStatuses, true)) {
-            appLog('input_validation', 'Invalid status', ['status' => $status]);
-            $error = "Status düzgün deyil.";
-        } elseif (
-            $published_year !== "" &&
-            (!ctype_digit($published_year) || (int)$published_year < 1900 || (int)$published_year > (int)date("Y"))
-        ) {
-            appLog('input_validation', 'Invalid published year', ['year' => $published_year]);
-            $error = "Nəşr ili düzgün daxil edilməyib.";
-        } else {
+        if ($error === "") {
+            if ($title === "" || $author === "" || $price === "") {
+                $error = "Kitab adı, müəllif və qiymət mütləqdir.";
+            } elseif (!preg_match('/^\d+(\.\d{1,2})?$/', $price) || (float)$price < 0) {
+                appLog('input_validation', 'Invalid price format', ['price' => $price]);
+                $error = "Qiymət düzgün daxil edilməyib.";
+            } elseif (!in_array($genre, $allowedGenres, true)) {
+                appLog('input_validation', 'Invalid genre', ['genre' => $genre]);
+                $error = "Janr düzgün seçilməyib.";
+            } elseif (!in_array($language, $allowedLanguages, true)) {
+                appLog('input_validation', 'Invalid language', ['language' => $language]);
+                $error = "Dil düzgün seçilməyib.";
+            } elseif (!in_array($book_condition, $allowedConditions, true)) {
+                appLog('input_validation', 'Invalid condition', ['condition' => $book_condition]);
+                $error = "Kitab vəziyyəti düzgün deyil.";
+            } elseif (!in_array($status, $allowedStatuses, true)) {
+                appLog('input_validation', 'Invalid status', ['status' => $status]);
+                $error = "Status düzgün deyil.";
+            } elseif (
+                $published_year !== "" &&
+                (!ctype_digit($published_year) || (int)$published_year < 1900 || (int)$published_year > (int)date("Y"))
+            ) {
+                appLog('input_validation', 'Invalid published year', ['year' => $published_year]);
+                $error = "Nəşr ili düzgün daxil edilməyib.";
+            }
+        }
+
+        if ($error === "") {
             if (isset($_FILES["image"]) && $_FILES["image"]["error"] !== UPLOAD_ERR_NO_FILE) {
                 $uploadDir = rtrim(UPLOAD_STORAGE_PATH, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-            
+
                 [$uploadOk, $uploadMessage, $savedFileName] = saveUploadedImage(
                     $_FILES["image"],
                     $uploadDir,
                     10 * 1024 * 1024
                 );
-            
+
                 if (!$uploadOk) {
                     appLog('upload_error', 'Book image upload failed', [
                         'message' => $uploadMessage
                     ]);
+
                     $error = $uploadMessage;
                 } else {
                     $imageName = $savedFileName;
                 }
             }
-
-            if ($error === "") {
-                $stmt = $pdo->prepare("
-                    INSERT INTO books (
-                        seller_id, user_id, title, author, description,
-                        price, image, genre, language, book_condition,
-                        published_year, status
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ");
-
-                $stmt->execute([
-                    $seller_id,
-                    $user_id,
-                    $title,
-                    $author,
-                    $description,
-                    $price,
-                    $imageName,
-                    $genre !== "" ? $genre : null,
-                    $language !== "" ? $language : null,
-                    $book_condition,
-                    $published_year !== "" ? (int)$published_year : null,
-                    $status
-                ]);
-
-                appLog('book_action', 'Book created successfully', [
-                    'title' => $title,
-                    'user_id' => $user_id
-                ]);
-
-                redirectTo("mybooks.php?added=1");
-            }
         }
+
+        if ($error === "") {
+            $stmt = $pdo->prepare("
+                INSERT INTO books (
+                    seller_id, user_id, title, author, description,
+                    price, image, genre, language, book_condition,
+                    published_year, status
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+
+            $stmt->execute([
+                $seller_id,
+                $user_id,
+                $title,
+                $author,
+                $description,
+                $price,
+                $imageName,
+                $genre !== "" ? $genre : null,
+                $language !== "" ? $language : null,
+                $book_condition,
+                $published_year !== "" ? (int)$published_year : null,
+                $status
+            ]);
+
+            appLog('book_action', 'Book created successfully', [
+                'title' => $title,
+                'user_id' => $user_id
+            ]);
+
+            redirectTo("mybooks.php?added=1");
+        }
+
     } catch (PDOException $e) {
         error_log($e->getMessage());
 

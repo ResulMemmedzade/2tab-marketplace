@@ -2,13 +2,9 @@
 
 require_once "config.php";
 
-session_set_cookie_params([
-    'httponly' => true,
-    'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-    'samesite' => 'Lax'
-]);
 
-session_start();
+
+
 
 if (!isset($_SESSION['session_initialized'])) {
     session_regenerate_id(true);
@@ -448,13 +444,14 @@ $userName = $_SESSION["name"] ?? "";
             </p>
 
             <div class="hero-actions">
-                <a href="/books.php" class="btn btn-primary">Kitablara bax</a>
+            <a href="<?= e(basePath('books.php')) ?>" class="btn btn-primary">Kitablara bax</a>
+
 
                 <?php if ($isLoggedIn): ?>
-                    <a href="/add_book.php" class="btn btn-light">Kitab paylaş</a>
-                <?php else: ?>
-                    <a href="/login.php?redirect=%2Fadd_book.php" class="btn btn-light">Kitab paylaş</a>
-                <?php endif; ?>
+                    <a href="<?= e(basePath('add_book.php')) ?>" class="btn btn-light">Kitab paylaş</a>
+                    <?php else: ?>
+                        <a href="<?= e(basePath('login.php')) ?>?redirect=<?= urlencode(basePath('add_book.php')) ?>" class="btn btn-light">Kitab paylaş</a>
+                        <?php endif; ?>
             </div>
         </div>
     </div>
@@ -465,8 +462,8 @@ $userName = $_SESSION["name"] ?? "";
                 <h2>Son əlavə olunan kitablar</h2>
                 
             </div>
-            <a href="/books.php" class="btn btn-light">Hamısına bax</a>
-        </div>
+            <a href="<?= e(basePath('books.php')) ?>" class="btn btn-light">Hamısına bax</a>
+            </div>
 
         <?php if (count($latestBooks) > 0): ?>
             <div class="book-grid">
@@ -476,7 +473,7 @@ $userName = $_SESSION["name"] ?? "";
         <div class="book-image-wrap">
             <img
                 class="book-image"
-                src="/image.php?file=<?php echo urlencode($book["image"]); ?>"
+                src="<?= e(basePath('image.php')) ?>?file=<?= urlencode($book["image"]) ?>"
                 alt="Kitab şəkli"
             >
         </div>
@@ -503,8 +500,7 @@ $conditionMeta = getConditionMeta($book['book_condition'] ?? $book['condition'] 
     </span>
 </div>
     <div class="book-actions">
-        <a href="/book.php?id=<?php echo (int)$book['id']; ?>" class="btn btn-light">Ətraflı bax</a>
-    </div>
+    <a href="<?= e(basePath('book.php')) ?>?id=<?= (int)$book['id']; ?>" class="btn btn-light">Ətraflı bax</a>    </div>
 </div>
                 <?php endforeach; ?>
             </div>

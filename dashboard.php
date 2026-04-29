@@ -1,19 +1,6 @@
 <?php
 require_once "config.php";
-session_set_cookie_params([
-    'httponly' => true,
-    'secure' => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-    'samesite' => 'Lax'
-]);
 
-session_start();
-
-if (!isset($_SESSION['session_initialized'])) {
-    session_regenerate_id(true);
-    $_SESSION['session_initialized'] = true;
-}
-
-require_once "config.php";
 
 requireLogin();
 
@@ -204,26 +191,25 @@ try {
             <div class="card">
                 <h3>Mənim kitablarım</h3>
                 <p>Yeni kitab əlavə et, öz elanlarını redaktə və idarə et.</p>
-                <a href="/mybooks.php" class="btn btn-primary">Aç</a>
+                <a href="<?= e(basePath('mybooks.php')) ?>" class="btn btn-primary">Aç</a>
             </div>
 
             <div class="card">
                 <h3>Favorilərim</h3>
                 <p>Bəyəndiyin və sonra baxmaq istədiyin kitablar burada saxlanılır.</p>
-                <a href="/favorites.php" class="btn btn-light">Aç</a>
-            </div>
+                <a href="<?= e(basePath('favorites.php')) ?>" class="btn btn-light">Aç</a>
+                </div>
 
             <div class="card">
                 <h3>Kitablar</h3>
                 <p>Platformadakı bütün aktiv kitab elanlarına bax və axtarış et.</p>
-                <a href="/books.php" class="btn btn-light">Bax</a>
-            </div>
+                <a href="<?= e(basePath('books.php')) ?>" class="btn btn-light">Bax</a>
+                </div>
 
             <div class="card">
                 <h3>Çıxış</h3>
                 <p>Hesabından təhlükəsiz şəkildə çıxış et.</p>
-                <form method="POST" action="/logout.php" class="logout-form">
-                    <button type="submit" class="btn btn-danger">Çıxış et</button>
+                <form method="POST" action="<?= e(basePath('logout.php')) ?>" class="logout-form">                    <button type="submit" class="btn btn-danger">Çıxış et</button>
                 </form>
             </div>
         </div>

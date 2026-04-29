@@ -54,7 +54,61 @@ try {
 
             redirectTo("admin_users.php");
         }
-
+        if (isset($_POST["ban_user"])) {
+            $targetId = (int) $_POST["ban_user"];
+        
+            if ($targetId > 0 && $targetId !== $currentAdminId) {
+        
+                $stmt = $pdo->prepare("
+                    UPDATE users 
+                    SET status = 'banned',
+                        banned_at = NOW(),
+                        banned_by = ?
+                    WHERE id = ? AND role != 'admin'
+                ");
+                $stmt->execute([$currentAdminId, $targetId]);
+                $hideBooksStmt = $pdo->prepare("
+    UPDATE books
+    SET status = 'hidden'
+    WHERE seller_id = ?
+      AND status = 'active'
+");
+$hideBooksStmt->execute([$targetId]);
+        
+                flashSuccess("İstifadəçi BAN edildi.");
+            }
+        
+            redirectTo("admin_users.php");
+        }
+        if (isset($_POST["unban_user"])) {
+            $targetId = (int) $_POST["unban_user"];
+        
+            if ($targetId > 0) {
+        
+                $stmt = $pdo->prepare("
+                    UPDATE users 
+                    SET status = 'active',
+                        banned_at = NULL,
+                        banned_by = NULL,
+                        banned_reason = NULL,
+                        ban_expires_at = NULL,
+                        strike_count = 0
+                    WHERE id = ?
+                ");
+                $stmt->execute([$targetId]);
+                $restoreBooksStmt = $pdo->prepare("
+    UPDATE books
+    SET status = 'active'
+    WHERE seller_id = ?
+      AND status = 'hidden'
+");
+$restoreBooksStmt->execute([$targetId]);
+        
+                flashSuccess("İstifadəçi UNBAN edildi.");
+            }
+        
+            redirectTo("admin_users.php");
+        }
         if (isset($_POST["make_buyer"])) {
             $targetId = (int) $_POST["make_buyer"];
 
@@ -96,8 +150,8 @@ try {
     }
 
     $sql = "
-        SELECT id, name, email, role, created_at
-        FROM users
+        SELECT id, name, email, role, status, created_at
+FROM users
         WHERE 1=1
     ";
     $params = [];
@@ -437,6 +491,7 @@ try {
                         <th>Ad</th>
                         <th>Email</th>
                         <th>Rol</th>
+                        <th>Status</th>
                         <th>Qeydiyyat tarixi</th>
                         <th>Əməliyyat</th>
                     </tr>
@@ -454,25 +509,65 @@ try {
                                     <span class="badge badge-user"><?php echo htmlspecialchars($user["role"] ?? "buyer", ENT_QUOTES, 'UTF-8'); ?></span>
                                 <?php endif; ?>
                             </td>
+                            <td>
+    <?php if ($user["status"] === "active"): ?>
+        <span class="badge" style="background:#dcfce7;color:#166534;">active</span>
+    <?php elseif ($user["status"] === "banned"): ?>
+        <span class="badge" style="background:#fee2e2;color:#b91c1c;">banned</span>
+    <?php elseif ($user["status"] === "temp_banned"): ?>
+        <span class="badge" style="background:#fef3c7;color:#92400e;">temp</span>
+    <?php elseif ($user["status"] === "flagged"): ?>
+        <span class="badge" style="background:#e0f2fe;color:#075985;">flagged</span>
+    <?php endif; ?>
+</td>
                             <td><?php echo htmlspecialchars($user["created_at"] ?? "-", ENT_QUOTES, 'UTF-8'); ?></td>
                             <td>
-                                <div class="action-group">
-                                    <?php if (($user["role"] ?? "") !== "admin"): ?>
-                                        <form method="POST" class="inline-form" onsubmit="return confirm('Bu istifadəçi admin olsun?');">
-                                            <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
-                                            <input type="hidden" name="make_admin" value="<?php echo (int)$user["id"]; ?>">
-                                            <button type="submit" class="btn-action btn-admin">Admin et</button>
-                                        </form>
-                                    <?php elseif ((int)$user["id"] !== (int)currentUserId()): ?>
-                                        <form method="POST" class="inline-form" onsubmit="return confirm('Bu istifadəçi buyer olsun?');">
-                                        <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
-                                            <input type="hidden" name="make_buyer" value="<?php echo (int)$user["id"]; ?>">
-                                            <button type="submit" class="btn-action btn-buyer">Buyer et</button>
-                                        </form>
-                                    <?php else: ?>
-                                        <span class="self-label">Sən</span>
-                                    <?php endif; ?>
-                                </div>
+                            <div class="action-group">
+
+<?php if (($user["role"] ?? "") !== "admin"): ?>
+
+    <!-- Admin et -->
+    <form method="POST" class="inline-form" onsubmit="return confirm('Bu istifadəçi admin olsun?');">
+        <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
+        <input type="hidden" name="make_admin" value="<?= (int)$user["id"]; ?>">
+        <button type="submit" class="btn-action btn-admin">Admin et</button>
+    </form>
+
+    <!-- BAN / UNBAN -->
+    <?php if ($user["status"] === "active"): ?>
+        <form method="POST" class="inline-form" onsubmit="return confirm('Bu istifadəçi BAN edilsin?');">
+            <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
+            <input type="hidden" name="ban_user" value="<?= (int)$user["id"]; ?>">
+            <button type="submit" class="btn-action" style="background:#fee2e2;color:#b91c1c;">
+                Ban et
+            </button>
+        </form>
+    <?php else: ?>
+        <form method="POST" class="inline-form" onsubmit="return confirm('Bu istifadəçi UNBAN edilsin?');">
+            <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
+            <input type="hidden" name="unban_user" value="<?= (int)$user["id"]; ?>">
+            <button type="submit" class="btn-action" style="background:#dcfce7;color:#166534;">
+                Unban et
+            </button>
+        </form>
+    <?php endif; ?>
+
+<?php elseif ((int)$user["id"] !== (int)currentUserId()): ?>
+
+    <!-- Buyer et -->
+    <form method="POST" class="inline-form" onsubmit="return confirm('Bu istifadəçi buyer olsun?');">
+        <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
+        <input type="hidden" name="make_buyer" value="<?= (int)$user["id"]; ?>">
+        <button type="submit" class="btn-action btn-buyer">Buyer et</button>
+    </form>
+
+<?php else: ?>
+
+    <span class="self-label">Sən</span>
+
+<?php endif; ?>
+
+</div>
                             </td>
                         </tr>
                     <?php endforeach; ?>

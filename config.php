@@ -262,4 +262,185 @@ if (!function_exists('getFlashError')) {
 */
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/logger.php';
+function enforceUserStatus(PDO $pdo): void
+{
+    if (!isset($_SESSION["user_id"])) {
+        return;
+    }
+
+    $stmt = $pdo->prepare("
+        SELECT status, ban_expires_at
+        FROM users
+        WHERE id = ?
+        LIMIT 1
+    ");
+    $stmt->execute([$_SESSION["user_id"]]);
+    $user = $stmt->fetch();
+
+    // user yoxdur → session öldür
+    if (!$user) {
+        session_destroy();
+        redirectTo("login.php");
+    }
+
+    // 🔴 PERMANENT BAN
+    if (($user["status"] ?? "active") === "banned") {
+        session_destroy();
+
+        appLog('session_killed', 'Banned user session destroyed', [
+            'user_id' => $_SESSION["user_id"] ?? null
+        ]);
+
+        redirectTo("login.php?banned=1");
+    }
+
+    // 🟡 TEMP BAN
+    if (($user["status"] ?? "active") === "temp_banned") {
+
+        if (!empty($user["ban_expires_at"]) && strtotime($user["ban_expires_at"]) > time()) {
+
+            session_destroy();
+
+            appLog('session_killed', 'Temp banned user session destroyed', [
+                'user_id' => $_SESSION["user_id"] ?? null,
+                'ban_expires_at' => $user["ban_expires_at"]
+            ]);
+
+            redirectTo("login.php?temp_banned=1");
+
+        } else {
+            // ⏳ müddət bitib → aktiv et
+            $stmt = $pdo->prepare("
+                UPDATE users
+                SET status = 'active',
+                    ban_expires_at = NULL
+                WHERE id = ?
+            ");
+            $stmt->execute([$_SESSION["user_id"]]);
+        }
+    }
+}
+function addUserStrike(PDO $pdo, int $userId, string $reason, int $maxStrikes = 3, int $banMinutes = 30): void
+{
+    if ($userId <= 0) {
+        return;
+    }
+
+    $stmt = $pdo->prepare("
+        SELECT id, role, status, strike_count, temp_ban_count
+        FROM users
+        WHERE id = ?
+        LIMIT 1
+    ");
+    $stmt->execute([$userId]);
+    $user = $stmt->fetch();
+
+    if (!$user) {
+        return;
+    }
+
+    if (($user["role"] ?? "") === "admin") {
+        return;
+    }
+
+    if (($user["status"] ?? "") === "banned") {
+        return;
+    }
+
+    $newStrikeCount = ((int)($user["strike_count"] ?? 0)) + 1;
+    $tempBanCount = (int)($user["temp_ban_count"] ?? 0);
+
+    if ($newStrikeCount >= $maxStrikes) {
+
+        if ($tempBanCount >= 2) {
+            $stmt = $pdo->prepare("
+                UPDATE users
+                SET status = 'banned',
+                    strike_count = ?,
+                    banned_at = NOW(),
+                    banned_reason = ?,
+                    banned_by = NULL,
+                    ban_expires_at = NULL
+                WHERE id = ?
+                  AND role != 'admin'
+            ");
+            $stmt->execute([$newStrikeCount, $reason, $userId]);
+            $hideBooksStmt = $pdo->prepare("
+    UPDATE books
+    SET status = 'hidden'
+    WHERE seller_id = ?
+      AND status = 'active'
+");
+$hideBooksStmt->execute([$userId]);
+            
+
+            appLog('auto_permanent_ban', 'User automatically permanently banned', [
+                'user_id' => $userId,
+                'reason' => $reason,
+                'previous_temp_ban_count' => $tempBanCount,
+            ]);
+
+            return;
+        }
+
+        $stmt = $pdo->prepare("
+            UPDATE users
+            SET status = 'temp_banned',
+                strike_count = 0,
+                temp_ban_count = temp_ban_count + 1,
+                ban_expires_at = DATE_ADD(NOW(), INTERVAL ? MINUTE),
+                banned_at = NOW(),
+                banned_reason = ?,
+                banned_by = NULL
+            WHERE id = ?
+              AND role != 'admin'
+        ");
+        $stmt->execute([$banMinutes, $reason, $userId]);
+
+        appLog('auto_temp_ban', 'User automatically temp banned', [
+            'user_id' => $userId,
+            'reason' => $reason,
+            'new_temp_ban_count' => $tempBanCount + 1,
+            'ban_minutes' => $banMinutes,
+        ]);
+
+        return;
+    }
+
+    $stmt = $pdo->prepare("
+        UPDATE users
+        SET status = 'flagged',
+            strike_count = ?,
+            banned_reason = ?
+        WHERE id = ?
+          AND role != 'admin'
+          AND status != 'banned'
+    ");
+    $stmt->execute([$newStrikeCount, $reason, $userId]);
+
+    appLog('user_strike', 'User strike added', [
+        'user_id' => $userId,
+        'reason' => $reason,
+        'strike_count' => $newStrikeCount,
+    ]);
+}
+function containsSuspiciousPayload(string $value): bool
+{
+    $patterns = [
+        '/<\s*script/i',
+        '/onerror\s*=/i',
+        '/onload\s*=/i',
+        '/javascript\s*:/i',
+        '/<\s*svg/i',
+        '/<\s*iframe/i',
+    ];
+
+    foreach ($patterns as $pattern) {
+        if (preg_match($pattern, $value)) {
+            return true;
+        }
+    }
+
+    return false;
+}
 require_once __DIR__ . '/auth.php';
