@@ -89,21 +89,45 @@ $stmt->execute([$conversationId, $currentUserId]);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Mesajlaşma - 2tab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        * { box-sizing: border-box; }
+        :root {
+            --background: #faf8f5;
+            --foreground: #2d2a26;
+            --card: #ffffff;
+            --card-foreground: #2d2a26;
+            --primary: #c4704b;
+            --primary-hover: #b5613c;
+            --primary-foreground: #ffffff;
+            --secondary: #f3efe9;
+            --secondary-hover: #e8e2d9;
+            --secondary-foreground: #4a4540;
+            --muted: #f0ebe4;
+            --muted-foreground: #7a756d;
+            --border: #e5dfd6;
+            --accent: #6b8f71;
+            --radius: 16px;
+            --radius-sm: 12px;
+            --shadow-sm: 0 1px 3px rgba(45, 42, 38, 0.04), 0 1px 2px rgba(45, 42, 38, 0.06);
+            --shadow: 0 4px 20px rgba(45, 42, 38, 0.06), 0 2px 8px rgba(45, 42, 38, 0.04);
+            --shadow-lg: 0 12px 40px rgba(45, 42, 38, 0.08), 0 4px 16px rgba(45, 42, 38, 0.04);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         html, body {
-            margin: 0;
-            padding: 0;
             height: 100%;
             overflow: hidden;
         }
 
         body {
-            font-family: Arial, sans-serif;
-            background: #f8fafc;
-            color: #1e293b;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--background);
+            color: var(--foreground);
+            -webkit-font-smoothing: antialiased;
         }
 
         #galleryImage,
@@ -116,50 +140,61 @@ $stmt->execute([$conversationId, $currentUserId]);
             min-height: 100dvh;
             display: flex;
             flex-direction: column;
-            background: #f8fafc;
+            background: var(--background);
         }
 
         .chat-header {
             flex-shrink: 0;
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 16px 18px;
-            background: #ffffff;
-            border-bottom: 1px solid #e2e8f0;
+            gap: 14px;
+            padding: 14px 18px;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
             z-index: 30;
         }
 
         .back-btn {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-sm);
             display: inline-flex;
             align-items: center;
             justify-content: center;
             text-decoration: none;
-            color: #2563eb;
-            font-size: 24px;
-            font-weight: 700;
+            color: var(--primary);
+            background: var(--secondary);
+            border: 1px solid var(--border);
             flex-shrink: 0;
+            transition: all 0.2s ease;
         }
 
-        .back-btn:hover { background: #eff6ff; }
+        .back-btn:hover {
+            background: var(--secondary-hover);
+            border-color: var(--primary);
+        }
 
-        .chat-header-text { min-width: 0; }
+        .back-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .chat-header-text { min-width: 0; flex: 1; }
 
         .chat-header-text h1 {
-            margin: 0;
-            font-size: 20px;
-            color: #0f172a;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--foreground);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            letter-spacing: -0.3px;
         }
 
         .chat-header-text p {
-            margin: 4px 0 0;
-            color: #64748b;
+            margin-top: 3px;
+            color: var(--muted-foreground);
             font-size: 13px;
             line-height: 1.4;
         }
@@ -180,8 +215,8 @@ $stmt->execute([$conversationId, $currentUserId]);
             padding: 18px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
-            background: #f8fafc;
+            gap: 14px;
+            background: var(--background);
             -webkit-overflow-scrolling: touch;
             overscroll-behavior: contain;
             scroll-behavior: smooth;
@@ -199,10 +234,10 @@ $stmt->execute([$conversationId, $currentUserId]);
             position: relative;
             min-width: 105px;
             max-width: min(72%, 520px);
-            padding: 12px 14px 24px;
-            border-radius: 16px;
+            padding: 12px 14px 26px;
+            border-radius: var(--radius);
             line-height: 1.6;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+            box-shadow: var(--shadow-sm);
             word-wrap: break-word;
             overflow-wrap: break-word;
             user-select: none;
@@ -211,20 +246,20 @@ $stmt->execute([$conversationId, $currentUserId]);
         }
 
         .message-row.mine .message-bubble {
-            background: #2563eb;
-            color: white;
+            background: var(--primary);
+            color: var(--primary-foreground);
             border-bottom-right-radius: 6px;
         }
 
         .message-row.other .message-bubble {
-            background: #ffffff;
-            color: #1e293b;
-            border: 1px solid #e2e8f0;
+            background: var(--card);
+            color: var(--foreground);
+            border: 1px solid var(--border);
             border-bottom-left-radius: 6px;
         }
 
         .message-bubble.selected {
-            outline: 3px solid rgba(37, 99, 235, 0.35);
+            outline: 3px solid rgba(196, 112, 75, 0.35);
             transform: scale(0.99);
         }
 
@@ -232,40 +267,45 @@ $stmt->execute([$conversationId, $currentUserId]);
             width: auto;
             min-width: 120px;
             max-width: 256px;
-            padding: 8px 8px 24px;
+            padding: 8px 8px 26px;
             overflow: hidden;
         }
 
         .message-text {
             white-space: normal;
+            font-size: 15px;
         }
 
         .message-footer {
             position: absolute;
             right: 10px;
-            bottom: 5px;
+            bottom: 6px;
             display: inline-flex;
             align-items: center;
             gap: 4px;
             font-size: 11px;
             line-height: 1;
-            opacity: 0.82;
+            opacity: 0.8;
             white-space: nowrap;
             pointer-events: none;
         }
 
         .message-row.other .message-footer {
-            color: #64748b;
+            color: var(--muted-foreground);
         }
 
         .message-row.mine .message-footer {
-            color: rgba(255,255,255,0.9);
+            color: rgba(255,255,255,0.85);
         }
 
         .message-check {
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: -2px;
+            display: flex;
+            align-items: center;
+        }
+
+        .message-check svg {
+            width: 14px;
+            height: 14px;
         }
 
         .chat-image {
@@ -274,7 +314,7 @@ $stmt->execute([$conversationId, $currentUserId]);
             max-width: 240px;
             max-height: 320px;
             height: auto;
-            border-radius: 12px;
+            border-radius: var(--radius-sm);
             object-fit: contain;
             cursor: pointer;
             background: transparent;
@@ -282,39 +322,51 @@ $stmt->execute([$conversationId, $currentUserId]);
 
         .edit-box {
             display: none;
-            margin-top: 8px;
+            margin-top: 10px;
         }
 
         .edit-box textarea {
             width: 100%;
             min-height: 70px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.45);
-            padding: 10px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            padding: 12px;
             font-size: 14px;
-            color: #0f172a;
-            background: #fff;
+            font-family: inherit;
+            color: var(--foreground);
+            background: var(--card);
             resize: vertical;
+        }
+
+        .edit-box textarea:focus {
+            outline: none;
+            border-color: var(--primary);
         }
 
         .edit-box-actions {
             display: flex;
             gap: 8px;
-            margin-top: 8px;
+            margin-top: 10px;
         }
 
         .message-action-btn {
             border: none;
-            border-radius: 9px;
-            padding: 8px 11px;
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
             font-size: 13px;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
         }
 
         .edit-btn {
-            background: #2563eb;
-            color: #ffffff;
+            background: var(--primary);
+            color: var(--primary-foreground);
+        }
+
+        .edit-btn:hover {
+            background: var(--primary-hover);
         }
 
         .delete-btn {
@@ -322,13 +374,22 @@ $stmt->execute([$conversationId, $currentUserId]);
             color: #ffffff;
         }
 
+        .delete-btn:hover {
+            background: #dc2626;
+        }
+
         .cancel-btn {
-            background: #e2e8f0;
-            color: #1e293b;
+            background: var(--secondary);
+            color: var(--secondary-foreground);
+            border: 1px solid var(--border);
+        }
+
+        .cancel-btn:hover {
+            background: var(--secondary-hover);
         }
 
         .empty-chat {
-            color: #64748b;
+            color: var(--muted-foreground);
             text-align: center;
             padding: 60px 20px;
             line-height: 1.8;
@@ -337,16 +398,17 @@ $stmt->execute([$conversationId, $currentUserId]);
 
         .empty-chat strong {
             display: block;
-            color: #0f172a;
+            color: var(--foreground);
             margin-bottom: 8px;
             font-size: 18px;
+            font-weight: 700;
         }
 
         .chat-form-wrap {
             flex-shrink: 0;
-            background: #ffffff;
-            border-top: 1px solid #e2e8f0;
-            padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
             z-index: 25;
         }
 
@@ -354,30 +416,32 @@ $stmt->execute([$conversationId, $currentUserId]);
             background: #fef2f2;
             color: #b91c1c;
             border: 1px solid #fecaca;
-            padding: 10px 12px;
-            border-radius: 12px;
-            margin-bottom: 10px;
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 12px;
             display: none;
+            font-size: 14px;
+            font-weight: 500;
         }
 
         .image-preview {
             display: none;
             align-items: center;
-            gap: 12px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
-            padding: 10px;
-            margin-bottom: 10px;
+            gap: 14px;
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 12px;
+            margin-bottom: 12px;
         }
 
         .image-preview img {
             width: 64px;
             height: 64px;
-            border-radius: 12px;
+            border-radius: var(--radius-sm);
             object-fit: cover;
-            border: 1px solid #e2e8f0;
-            background: #fff;
+            border: 1px solid var(--border);
+            background: var(--card);
         }
 
         .image-preview-info {
@@ -388,13 +452,13 @@ $stmt->execute([$conversationId, $currentUserId]);
         .image-preview-title {
             font-size: 14px;
             font-weight: 700;
-            color: #0f172a;
+            color: var(--foreground);
             margin-bottom: 4px;
         }
 
         .image-preview-name {
-            font-size: 12px;
-            color: #64748b;
+            font-size: 13px;
+            color: var(--muted-foreground);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -408,21 +472,32 @@ $stmt->execute([$conversationId, $currentUserId]);
 
         .preview-btn {
             border: none;
-            border-radius: 10px;
-            padding: 9px 11px;
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
             font-size: 13px;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
         }
 
         .preview-send {
-            background: #2563eb;
-            color: #fff;
+            background: var(--primary);
+            color: var(--primary-foreground);
+        }
+
+        .preview-send:hover {
+            background: var(--primary-hover);
         }
 
         .preview-cancel {
-            background: #e2e8f0;
-            color: #1e293b;
+            background: var(--secondary);
+            color: var(--secondary-foreground);
+            border: 1px solid var(--border);
+        }
+
+        .preview-cancel:hover {
+            background: var(--secondary-hover);
         }
 
         .chat-form {
@@ -436,16 +511,17 @@ $stmt->execute([$conversationId, $currentUserId]);
             display: flex;
             align-items: flex-end;
             gap: 10px;
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 18px;
-            padding: 10px 10px 10px 14px;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.04);
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 10px 10px 10px 16px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
         }
 
         .input-shell:focus-within {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(196, 112, 75, 0.1);
         }
 
         textarea {
@@ -457,39 +533,46 @@ $stmt->execute([$conversationId, $currentUserId]);
             max-height: 120px;
             padding: 6px 0;
             font-size: 16px;
-            font-family: Arial, sans-serif;
+            font-family: inherit;
             line-height: 1.5;
-            color: #0f172a;
+            color: var(--foreground);
             background: transparent;
             overflow-y: auto;
         }
 
-        textarea::placeholder { color: #64748b; }
+        textarea::placeholder { color: var(--muted-foreground); }
 
         .send-btn {
-            width: 46px;
-            height: 46px;
-            min-width: 46px;
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
             border: none;
             border-radius: 50%;
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            color: #ffffff;
+            background: var(--primary);
+            color: var(--primary-foreground);
             display: inline-flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            font-size: 20px;
-            font-weight: 700;
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.28);
-            transition: transform 0.15s ease, opacity 0.15s ease;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
         }
 
-        .send-btn:hover { transform: translateY(-1px); }
+        .send-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
 
         .send-btn:disabled {
-            opacity: 0.7;
+            opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+        }
+
+        .send-btn svg {
+            width: 20px;
+            height: 20px;
         }
 
         .attach-wrap {
@@ -502,12 +585,12 @@ $stmt->execute([$conversationId, $currentUserId]);
             position: absolute;
             right: 0;
             bottom: 56px;
-            width: 155px;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 14px;
+            width: 160px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
             padding: 8px;
-            box-shadow: 0 14px 30px rgba(15, 23, 42, 0.16);
+            box-shadow: var(--shadow-lg);
             z-index: 80;
         }
 
@@ -518,20 +601,31 @@ $stmt->execute([$conversationId, $currentUserId]);
         }
 
         .attach-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
             border: none;
-            background: #f8fafc;
-            color: #0f172a;
-            border-radius: 10px;
-            padding: 10px 12px;
+            background: var(--secondary);
+            color: var(--foreground);
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
             font-size: 14px;
-            font-weight: 700;
+            font-weight: 600;
+            font-family: inherit;
             cursor: pointer;
             text-align: left;
+            transition: all 0.2s ease;
         }
 
         .attach-option:hover {
-            background: #eff6ff;
-            color: #1d4ed8;
+            background: var(--secondary-hover);
+            color: var(--primary);
+        }
+
+        .attach-option svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
         }
 
         .image-modal {
@@ -539,7 +633,7 @@ $stmt->execute([$conversationId, $currentUserId]);
             position: fixed;
             inset: 0;
             z-index: 999;
-            background: rgba(15, 23, 42, 0.92);
+            background: rgba(45, 42, 38, 0.95);
             align-items: center;
             justify-content: center;
             padding: 20px;
@@ -553,23 +647,35 @@ $stmt->execute([$conversationId, $currentUserId]);
             max-width: 100%;
             max-height: 90vh;
             object-fit: contain;
-            border-radius: 12px;
+            border-radius: var(--radius-sm);
             background: #000;
         }
 
         .image-modal-close {
             position: fixed;
-            top: 14px;
-            right: 14px;
-            width: 42px;
-            height: 42px;
+            top: 16px;
+            right: 16px;
+            width: 44px;
+            height: 44px;
             border: none;
-            border-radius: 50%;
-            background: #ffffff;
-            color: #0f172a;
-            font-size: 22px;
-            font-weight: 700;
+            border-radius: var(--radius-sm);
+            background: var(--card);
+            color: var(--foreground);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
+            box-shadow: var(--shadow);
+            transition: all 0.2s ease;
+        }
+
+        .image-modal-close:hover {
+            background: var(--secondary);
+        }
+
+        .image-modal-close svg {
+            width: 22px;
+            height: 22px;
         }
 
         .selection-bar {
@@ -579,14 +685,14 @@ $stmt->execute([$conversationId, $currentUserId]);
             right: 12px;
             bottom: calc(12px + env(safe-area-inset-bottom));
             z-index: 800;
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 18px;
-            padding: 12px;
-            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.18);
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            box-shadow: var(--shadow-lg);
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
+            gap: 12px;
         }
 
         .selection-bar.is-open {
@@ -594,9 +700,9 @@ $stmt->execute([$conversationId, $currentUserId]);
         }
 
         .selection-title {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 700;
-            color: #0f172a;
+            color: var(--foreground);
         }
 
         .selection-actions {
@@ -607,17 +713,16 @@ $stmt->execute([$conversationId, $currentUserId]);
         }
 
         @media (max-width: 768px) {
-            .chat-page { background: #ffffff; }
+            .chat-page { background: var(--card); }
 
             .chat-header { padding: 12px 14px; }
 
             .back-btn {
-                width: 38px;
-                height: 38px;
-                font-size: 22px;
+                width: 40px;
+                height: 40px;
             }
 
-            .chat-header-text h1 { font-size: 18px; }
+            .chat-header-text h1 { font-size: 17px; }
             .chat-header-text p { font-size: 12px; }
 
             .chat-messages {
@@ -633,7 +738,7 @@ $stmt->execute([$conversationId, $currentUserId]);
             .message-bubble.image-bubble {
                 min-width: 120px;
                 max-width: 240px;
-                padding: 7px 7px 24px;
+                padding: 7px 7px 26px;
             }
 
             .chat-image {
@@ -642,12 +747,12 @@ $stmt->execute([$conversationId, $currentUserId]);
             }
 
             .chat-form-wrap {
-                padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+                padding: 12px 14px calc(12px + env(safe-area-inset-bottom));
             }
 
             .input-shell {
-                border-radius: 20px;
-                padding: 8px 8px 8px 12px;
+                border-radius: 22px;
+                padding: 8px 8px 8px 14px;
                 gap: 8px;
             }
 
@@ -657,9 +762,9 @@ $stmt->execute([$conversationId, $currentUserId]);
             }
 
             .send-btn {
-                width: 44px;
-                height: 44px;
-                min-width: 44px;
+                width: 42px;
+                height: 42px;
+                min-width: 42px;
             }
 
             .image-preview {
@@ -676,10 +781,14 @@ $stmt->execute([$conversationId, $currentUserId]);
 
 <div class="chat-page">
     <div class="chat-header">
-        <a href="/messages.php" class="back-btn" aria-label="Mesajlara qayıt">←</a>
+        <a href="<?= e(basePath('messages.php')) ?>" class="back-btn" aria-label="Mesajlara qayıt">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+        </a>
 
         <div class="chat-header-text">
-            <h1><?php echo e($otherUser["name"] ?? "İstifadəçi"); ?></h1>
+            <h1><?= e($otherUser["name"] ?? "İstifadəçi") ?></h1>
             <p>Mesajlaşmanı buradan davam etdirə bilərsiniz.</p>
         </div>
     </div>
@@ -692,32 +801,31 @@ $stmt->execute([$conversationId, $currentUserId]);
                         $isMine = (int)$msg["sender_id"] === $currentUserId;
                         $messageType = $msg["message_type"] ?? "text";
                         $isRead = (int)($msg["is_read"] ?? 0) === 1;
-                        $checkMark = $isRead ? "✓✓" : "✓";
                         $bubbleClass = $messageType === "image" ? "message-bubble image-bubble" : "message-bubble";
                         $canEdit = $isMine && $messageType === "text" && !$isRead;
                         $canDelete = $isMine;
                     ?>
 
-                    <div class="message-row <?php echo $isMine ? 'mine' : 'other'; ?>">
+                    <div class="message-row <?= $isMine ? 'mine' : 'other' ?>">
                         <div
-                            class="<?php echo e($bubbleClass); ?>"
-                            data-message-id="<?php echo (int)$msg["id"]; ?>"
-                            data-message-type="<?php echo e($messageType); ?>"
-                            data-can-edit="<?php echo $canEdit ? '1' : '0'; ?>"
-                            data-can-delete="<?php echo $canDelete ? '1' : '0'; ?>"
+                            class="<?= e($bubbleClass) ?>"
+                            data-message-id="<?= (int)$msg["id"] ?>"
+                            data-message-type="<?= e($messageType) ?>"
+                            data-can-edit="<?= $canEdit ? '1' : '0' ?>"
+                            data-can-delete="<?= $canDelete ? '1' : '0' ?>"
                         >
                             <?php if ($messageType === "image"): ?>
                                 <img
-                                    src="<?php echo e(basePath('uploads/' . ltrim((string)$msg["message"], '/'))); ?>"
+                                    src="<?= e(basePath('uploads/' . ltrim((string)$msg["message"], '/'))) ?>"
                                     class="chat-image js-full-image"
                                     alt="Göndərilən şəkil"
                                 >
                             <?php else: ?>
-                                <div class="message-text"><?php echo nl2br(e($msg["message"])); ?></div>
+                                <div class="message-text"><?= nl2br(e($msg["message"])) ?></div>
 
                                 <?php if ($canEdit): ?>
                                     <div class="edit-box">
-                                        <textarea class="edit-message-input" required><?php echo e($msg["message"]); ?></textarea>
+                                        <textarea class="edit-message-input" required><?= e($msg["message"]) ?></textarea>
                                         <div class="edit-box-actions">
                                             <button type="button" class="message-action-btn edit-btn js-save-edit">Yadda saxla</button>
                                             <button type="button" class="message-action-btn cancel-btn js-cancel-edit">Bağla</button>
@@ -727,9 +835,19 @@ $stmt->execute([$conversationId, $currentUserId]);
                             <?php endif; ?>
 
                             <div class="message-footer">
-                                <span class="message-time"><?php echo e(formatRelativeTime($msg["created_at"] ?? "")); ?></span>
+                                <span class="message-time"><?= e(formatRelativeTime($msg["created_at"] ?? "")) ?></span>
                                 <?php if ($isMine): ?>
-                                    <span class="message-check"><?php echo e($checkMark); ?></span>
+                                    <span class="message-check">
+                                        <?php if ($isRead): ?>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5M9 12.75l3 3" />
+                                            </svg>
+                                        <?php else: ?>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                            </svg>
+                                        <?php endif; ?>
+                                    </span>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -759,8 +877,8 @@ $stmt->execute([$conversationId, $currentUserId]);
             </div>
 
             <form method="POST" id="chatForm" class="chat-form">
-                <input type="hidden" name="conversation_id" value="<?php echo (int)$conversationId; ?>">
-                <input type="hidden" name="csrf_token" value="<?php echo e(csrfToken()); ?>">
+                <input type="hidden" name="conversation_id" value="<?= (int)$conversationId ?>">
+                <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
 
                 <div class="input-shell">
                     <textarea
@@ -774,15 +892,34 @@ $stmt->execute([$conversationId, $currentUserId]);
                     <input type="file" name="image" id="cameraImage" accept="image/*" capture="environment">
 
                     <div class="attach-wrap">
-                        <button type="button" class="send-btn" id="imageBtn" aria-label="Fayl əlavə et">📎</button>
+                        <button type="button" class="send-btn" id="imageBtn" aria-label="Fayl əlavə et">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 01-6.364-6.364l10.94-10.94A3 3 0 1119.5 7.372L8.552 18.32m.009-.01l-.01.01m5.699-9.941l-7.81 7.81a1.5 1.5 0 002.112 2.13" />
+                            </svg>
+                        </button>
 
                         <div class="attach-menu" id="attachMenu">
-                            <button type="button" class="attach-option" id="chooseGallery">🖼️ Qalereya</button>
-                            <button type="button" class="attach-option" id="chooseCamera">📷 Kamera</button>
+                            <button type="button" class="attach-option" id="chooseGallery">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                                </svg>
+                                Qalereya
+                            </button>
+                            <button type="button" class="attach-option" id="chooseCamera">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                                </svg>
+                                Kamera
+                            </button>
                         </div>
                     </div>
 
-                    <button type="button" class="send-btn" id="sendBtn" aria-label="Göndər">➤</button>
+                    <button type="button" class="send-btn" id="sendBtn" aria-label="Göndər">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                        </svg>
+                    </button>
                 </div>
             </form>
         </div>
@@ -792,14 +929,18 @@ $stmt->execute([$conversationId, $currentUserId]);
 <div class="selection-bar" id="selectionBar">
     <div class="selection-title">Mesaj seçildi</div>
     <div class="selection-actions">
-        <button type="button" class="message-action-btn edit-btn" id="selectionEditBtn">Edit</button>
+        <button type="button" class="message-action-btn edit-btn" id="selectionEditBtn">Redaktə et</button>
         <button type="button" class="message-action-btn delete-btn" id="selectionDeleteBtn">Sil</button>
         <button type="button" class="message-action-btn cancel-btn" id="selectionCancelBtn">Bağla</button>
     </div>
 </div>
 
 <div class="image-modal" id="imageModal">
-    <button type="button" class="image-modal-close" id="closeImageModal">×</button>
+    <button type="button" class="image-modal-close" id="closeImageModal">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+    </button>
     <img src="" alt="Tam ekran şəkil" id="modalImage">
 </div>
 
@@ -838,8 +979,8 @@ let selectedBubble = null;
 let pressTimer = null;
 let didLongPress = false;
 
-const csrfToken = <?php echo json_encode(csrfToken()); ?>;
-const conversationId = <?php echo (int)$conversationId; ?>;
+const csrfToken = <?= json_encode(csrfToken()) ?>;
+const conversationId = <?= (int)$conversationId ?>;
 
 function scrollToBottom(force = false) {
     if (!chatMessages) return;
@@ -978,6 +1119,8 @@ function bindAllLongPress() {
     document.querySelectorAll(".message-bubble").forEach(bindLongPressToBubble);
 }
 
+const checkSvgSingle = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>`;
+
 function appendMessage(messageText, timeText, messageId = "", canEdit = true) {
     if (!chatMessages) return;
 
@@ -1016,7 +1159,7 @@ function appendMessage(messageText, timeText, messageId = "", canEdit = true) {
     footer.className = "message-footer";
     footer.innerHTML = `
         <span class="message-time">${escapeHtml(timeText)}</span>
-        <span class="message-check">✓</span>
+        <span class="message-check">${checkSvgSingle}</span>
     `;
 
     bubble.appendChild(footer);
@@ -1051,7 +1194,7 @@ function appendImageMessage(imageUrl, timeText, messageId = "") {
     footer.className = "message-footer";
     footer.innerHTML = `
         <span class="message-time">${escapeHtml(timeText)}</span>
-        <span class="message-check">✓</span>
+        <span class="message-check">${checkSvgSingle}</span>
     `;
 
     bubble.appendChild(img);
@@ -1127,7 +1270,7 @@ async function sendMessage() {
     sendBtn.disabled = true;
 
     try {
-        const response = await fetch("<?php echo e(basePath('send_message.php')); ?>", {
+        const response = await fetch("<?= e(basePath('send_message.php')) ?>", {
             method: "POST",
             body: formData,
             headers: {
@@ -1185,7 +1328,7 @@ async function sendSelectedImage() {
     try {
         const localPreviewUrl = selectedImagePreviewUrl;
 
-        const response = await fetch("<?php echo e(basePath('send_chat_image.php')); ?>", {
+        const response = await fetch("<?= e(basePath('send_chat_image.php')) ?>", {
             method: "POST",
             body: formData,
             headers: {
@@ -1240,7 +1383,7 @@ async function deleteSelectedMessage() {
     formData.append("message_id", messageId);
 
     try {
-        const response = await fetch("<?php echo e(basePath('delete_message.php')); ?>", {
+        const response = await fetch("<?= e(basePath('delete_message.php')) ?>", {
             method: "POST",
             body: formData,
             headers: {
@@ -1318,7 +1461,7 @@ async function saveEdit(button) {
     button.disabled = true;
 
     try {
-        const response = await fetch("<?php echo e(basePath('edit_message.php')); ?>", {
+        const response = await fetch("<?= e(basePath('edit_message.php')) ?>", {
             method: "POST",
             body: formData,
             headers: {

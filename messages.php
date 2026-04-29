@@ -49,13 +49,13 @@ try {
                 ORDER BY m.created_at DESC, m.id DESC
                 LIMIT 1
             ) AS last_message,
-             (
-    SELECT m.message_type
-    FROM messages m
-    WHERE m.conversation_id = c.id
-    ORDER BY m.created_at DESC, m.id DESC
-    LIMIT 1
-) AS last_message_type,
+            (
+                SELECT m.message_type
+                FROM messages m
+                WHERE m.conversation_id = c.id
+                ORDER BY m.created_at DESC, m.id DESC
+                LIMIT 1
+            ) AS last_message_type,
             (
                 SELECT COUNT(*)
                 FROM messages m2
@@ -84,214 +84,170 @@ try {
 
 } catch (PDOException $e) {
     error_log($e->getMessage());
-
-    appLog('system_error', 'Messages list DB error', [
-        'user_id' => $currentUserId,
-        'error' => $e->getMessage(),
-    ]);
-
     $conversations = [];
 }
 ?>
 <!DOCTYPE html>
 <html lang="az">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2tab | Mesajlar</title>
-    <style>
-        * { box-sizing: border-box; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2tab | Mesajlar</title>
 
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f8fafc;
-            color: #1e293b;
-        }
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-        .container {
-            max-width: 1000px;
-            margin: 30px auto;
-            padding: 0 20px 32px;
-        }
+<style>
+:root {
+    --background: #faf8f5;
+    --foreground: #2d2a26;
+    --card: #ffffff;
+    --primary: #c4704b;
+    --primary-hover: #b5613c;
+    --secondary: #f3efe9;
+    --muted: #f0ebe4;
+    --muted-foreground: #7a756d;
+    --border: #e5dfd6;
+    --radius: 16px;
+    --radius-sm: 12px;
+    --shadow: 0 4px 20px rgba(45,42,38,0.06);
+    --shadow-lg: 0 12px 40px rgba(45,42,38,0.08);
+}
 
-        .page-title {
-            margin-bottom: 20px;
-        }
+* { box-sizing: border-box; }
 
-        .page-title h1 {
-            margin: 0 0 8px;
-            font-size: 30px;
-            color: #0f172a;
-        }
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: var(--background);
+    color: var(--foreground);
+}
 
-        .page-title p {
-            margin: 0;
-            color: #64748b;
-            line-height: 1.6;
-        }
+.container {
+    max-width: 1000px;
+    margin: 30px auto;
+    padding: 0 20px 40px;
+}
 
-        .chat-list {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
+.page-title h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
 
-        .chat-card {
-            display: block;
-            text-decoration: none;
-            background: #fff;
-            border-radius: 18px;
-            padding: 18px 20px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-            color: inherit;
-            transition: 0.2s ease;
-        }
+.chat-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
 
-        .chat-card:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
-            background: #fcfdff;
-        }
+.chat-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    text-decoration: none;
+    color: inherit;
+    transition: 0.25s ease;
+}
 
-        .chat-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 8px;
-        }
+.chat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
 
-        .chat-name {
-            font-size: 18px;
-            font-weight: 700;
-            color: #0f172a;
-        }
+.chat-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
 
-        .chat-time {
-            font-size: 13px;
-            color: #64748b;
-            white-space: nowrap;
-        }
+.chat-name {
+    font-weight: 600;
+}
 
-        .chat-preview {
-            color: #475569;
-            line-height: 1.6;
-            margin-bottom: 10px;
-            word-break: break-word;
-        }
+.chat-time {
+    font-size: 13px;
+    color: var(--muted-foreground);
+}
 
-        .chat-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
+.chat-preview {
+    font-size: 14px;
+    color: var(--muted-foreground);
+    margin-bottom: 8px;
+}
 
-        .chat-email {
-            font-size: 13px;
-            color: #64748b;
-        }
+.unread-badge {
+    background: var(--primary);
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+}
 
-        .unread-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: #2563eb;
-            color: #ffffff;
-            padding: 6px 10px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 700;
-            min-width: 28px;
-        }
-
-        .empty {
-            color: #64748b;
-            padding: 28px;
-            border: 1px dashed #cbd5e1;
-            border-radius: 16px;
-            background: #fff;
-            text-align: center;
-            line-height: 1.8;
-        }
-
-        .empty strong {
-            display: block;
-            color: #0f172a;
-            font-size: 18px;
-            margin-bottom: 8px;
-        }
-
-        @media (max-width: 768px) {
-            .chat-top {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .chat-time {
-                white-space: normal;
-            }
-        }
-    </style>
+.empty {
+    background: var(--card);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 40px;
+    text-align: center;
+}
+</style>
 </head>
+
 <body>
 <?php require_once __DIR__ . '/includes/topbar.php'; ?>
 
-    <div class="container">
-        <div class="page-title">
-            <h1>Mesajlar</h1>
-           
-        </div>
+<div class="container">
+    <div class="page-title">
+        <h1>Mesajlar</h1>
+    </div>
 
-        <?php if (count($conversations) > 0): ?>
-            <div class="chat-list">
-                <?php foreach ($conversations as $chat): ?>
-                    <?php
-                    $lastMessageType = $chat["last_message_type"] ?? "text";
+    <?php if (count($conversations) > 0): ?>
+        <div class="chat-list">
+            <?php foreach ($conversations as $chat): ?>
+                <?php
+                $lastMessageType = $chat["last_message_type"] ?? "text";
 
-                    if ($lastMessageType === "image") {
-                        $preview = "(Şəkil göndərilib)";
-                    } else {
-                        $preview = trim((string)($chat["last_message"] ?? ""));
-                    
-                        if ($preview !== "" && mb_strlen($preview) > 90) {
-                            $preview = mb_substr($preview, 0, 90) . "...";
-                        }
+                if ($lastMessageType === "image") {
+                    $preview = "(Şəkil göndərilib)";
+                } else {
+                    $preview = trim((string)($chat["last_message"] ?? ""));
+                    if ($preview !== "" && mb_strlen($preview) > 90) {
+                        $preview = mb_substr($preview, 0, 90) . "...";
                     }
-                    ?>
-                    <a class="chat-card" href="<?= e(basePath('conversation.php?id=' . (int)$chat["id"])) ?>">
-                        <div class="chat-top">
-                            <div class="chat-name">
-                                <?php echo e($chat["other_user_name"] ?: $chat["other_user_email"] ?: "İstifadəçi"); ?>
-                            </div>
-                            <div class="chat-time">
-                                <?php echo e(formatRelativeTime($chat["last_message_at"] ?? $chat["created_at"])); ?>
-                            </div>
+                }
+                ?>
+                <a class="chat-card" href="<?= e(basePath('conversation.php?id=' . (int)$chat["id"])) ?>">
+                    <div class="chat-top">
+                        <div class="chat-name">
+                            <?= e($chat["other_user_name"] ?: "İstifadəçi") ?>
                         </div>
-
-                        <div class="chat-preview">
-                            <?php echo e($preview ?: "Hələ mesaj yoxdur."); ?>
+                        <div class="chat-time">
+                            <?= e(formatRelativeTime($chat["last_message_at"] ?? $chat["created_at"])) ?>
                         </div>
+                    </div>
 
-                        <div class="chat-footer">
-    <?php if ((int)$chat["unread_count"] > 0): ?>
-        <span class="unread-badge">
-            <?php echo (int)$chat["unread_count"]; ?> yeni mesaj
-        </span>
+                    <div class="chat-preview">
+                        <?= e($preview ?: "Hələ mesaj yoxdur.") ?>
+                    </div>
+
+                    <?php if ((int)$chat["unread_count"] > 0): ?>
+                        <span class="unread-badge">
+                            <?= (int)$chat["unread_count"] ?> yeni mesaj
+                        </span>
+                    <?php endif; ?>
+                </a>
+            <?php endforeach; ?>
+        </div>
+    <?php else: ?>
+        <div class="empty">
+            <strong>Hələ heç bir söhbət yoxdur</strong><br>
+            Söhbət başladıqdan sonra burada görünəcək.
+        </div>
     <?php endif; ?>
 </div>
-                    </a>
-                <?php endforeach; ?>
-            </div>
-        <?php else: ?>
-            <div class="empty">
-                <strong>Hələ heç bir söhbət yoxdur</strong>
-                Söhbət başladıqdan sonra bütün mesajlaşmalar burada görünəcək.
-            </div>
-        <?php endif; ?>
-    </div>
+
 </body>
 </html>

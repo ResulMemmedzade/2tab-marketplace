@@ -64,250 +64,333 @@ if (isset($_GET['added']) && $_GET['added'] == '1') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2tab | Mənim kitablarım</title>
+    <title>Mənim kitablarım - 2tab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --background: #faf8f5;
+            --foreground: #2d2a26;
+            --card: #ffffff;
+            --card-foreground: #2d2a26;
+            --primary: #c4704b;
+            --primary-hover: #b5613c;
+            --primary-foreground: #ffffff;
+            --secondary: #f3efe9;
+            --secondary-hover: #e8e2d9;
+            --secondary-foreground: #4a4540;
+            --muted: #f0ebe4;
+            --muted-foreground: #7a756d;
+            --border: #e5dfd6;
+            --accent: #6b8f71;
+            --destructive: #dc2626;
+            --destructive-hover: #b91c1c;
+            --radius: 16px;
+            --radius-sm: 12px;
+            --shadow-sm: 0 1px 3px rgba(45, 42, 38, 0.04), 0 1px 2px rgba(45, 42, 38, 0.06);
+            --shadow: 0 4px 20px rgba(45, 42, 38, 0.06), 0 2px 8px rgba(45, 42, 38, 0.04);
+            --shadow-lg: 0 12px 40px rgba(45, 42, 38, 0.08), 0 4px 16px rgba(45, 42, 38, 0.04);
+        }
+
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f8fafc;
-            color: #1e293b;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--background);
+            color: var(--foreground);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }
 
         .container {
             max-width: 1200px;
-            margin: 30px auto;
-            padding: 0 20px 40px;
+            margin: 24px auto 48px;
+            padding: 0 20px;
         }
 
-        .page-title {
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 16px;
-            flex-wrap: wrap;
+        .page-header {
+            margin-bottom: 24px;
         }
 
-        .page-title h1 {
+        .page-header h1 {
             margin: 0 0 8px;
-            font-size: 30px;
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--foreground);
+            letter-spacing: -0.5px;
         }
 
-        .page-title p {
+        .page-header p {
             margin: 0;
-            color: #64748b;
+            color: var(--muted-foreground);
+            font-size: 16px;
             line-height: 1.6;
         }
 
         .card {
-            background: #fff;
-            border-radius: 18px;
+            background: var(--card);
+            border-radius: var(--radius);
             padding: 24px;
-            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-            border: 1px solid #e2e8f0;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
         }
 
         .toolbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 12px;
+            gap: 16px;
             flex-wrap: wrap;
             margin-bottom: 20px;
         }
 
         .toolbar-title {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
-            color: #0f172a;
+            color: var(--foreground);
+            letter-spacing: -0.3px;
         }
 
         .alert-success {
-            background: #ecfdf5;
-            color: #047857;
-            border: 1px solid #a7f3d0;
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 15px;
+            background: rgba(107, 143, 113, 0.12);
+            color: #3d6b44;
+            border: 1px solid rgba(107, 143, 113, 0.3);
+            padding: 14px 16px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 16px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-success svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
         }
 
         .btn {
             border: none;
-            border-radius: 12px;
-            padding: 13px 18px;
-            font-size: 15px;
-            font-weight: 700;
+            border-radius: var(--radius-sm);
+            padding: 12px 18px;
+            font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            gap: 8px;
             white-space: nowrap;
-            transition: 0.2s ease;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .btn svg {
+            width: 18px;
+            height: 18px;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            color: white;
+            background: var(--primary);
+            color: var(--primary-foreground);
+            box-shadow: var(--shadow-sm);
         }
 
         .btn-primary:hover {
+            background: var(--primary-hover);
             transform: translateY(-1px);
-            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.18);
+            box-shadow: var(--shadow);
         }
 
-        .btn-edit {
-            background: #dbeafe;
-            color: #1d4ed8;
-            border: 1px solid #bfdbfe;
+        .btn-secondary {
+            background: var(--secondary);
+            color: var(--secondary-foreground);
+            border: 1px solid var(--border);
         }
 
-        .btn-edit:hover {
-            background: #bfdbfe;
+        .btn-secondary:hover {
+            background: var(--secondary-hover);
         }
 
-        .btn-danger-link {
+        .btn-danger {
             background: transparent;
-            border: none;
-            color: #b91c1c;
-            cursor: pointer;
-            padding: 0;
-            font: inherit;
-            text-decoration: underline;
-            font-weight: 600;
+            color: var(--destructive);
+            padding: 12px 14px;
+        }
+
+        .btn-danger:hover {
+            background: rgba(220, 38, 38, 0.08);
         }
 
         .book-list {
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 16px;
         }
 
         .book-item {
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 20px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             padding: 16px;
-            background: #f8fafc;
+            background: var(--secondary);
+            transition: all 0.2s ease;
+        }
+
+        .book-item:hover {
+            box-shadow: var(--shadow-sm);
+            border-color: transparent;
+        }
+
+        .book-image-wrap {
+            position: relative;
         }
 
         .book-image {
             width: 140px;
             height: 180px;
             object-fit: cover;
-            border-radius: 12px;
-            border: 1px solid #cbd5e1;
-            margin-bottom: 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
             display: block;
-            background: #fff;
+            background: var(--card);
         }
 
         .no-image {
             width: 140px;
             height: 180px;
-            border-radius: 12px;
-            border: 1px dashed #cbd5e1;
-            margin-bottom: 12px;
-            background: #fff;
-            color: #94a3b8;
+            border-radius: var(--radius-sm);
+            border: 2px dashed var(--border);
+            background: var(--card);
+            color: var(--muted-foreground);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .book-content {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
         }
 
         .book-item h3 {
-            margin: 0 0 8px;
-            font-size: 20px;
-            color: #0f172a;
+            margin: 0 0 10px;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--foreground);
             line-height: 1.4;
+            letter-spacing: -0.3px;
         }
 
-        .book-top-meta {
+        .book-badges {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .badge {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 6px 10px;
+            padding: 5px 10px;
             border-radius: 999px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
-            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
 
         .condition-new {
-            background: #dcfce7;
-            color: #166534;
+            background: rgba(34, 197, 94, 0.15);
+            color: #15803d;
         }
 
         .condition-like-new {
-            background: #dbeafe;
+            background: rgba(59, 130, 246, 0.15);
             color: #1d4ed8;
         }
 
         .condition-good {
-            background: #e0f2fe;
-            color: #075985;
+            background: rgba(14, 165, 233, 0.15);
+            color: #0369a1;
         }
 
         .condition-fair {
-            background: #ffedd5;
+            background: rgba(249, 115, 22, 0.15);
             color: #c2410c;
         }
 
         .condition-poor {
-            background: #fee2e2;
+            background: rgba(239, 68, 68, 0.15);
             color: #b91c1c;
         }
 
         .condition-default {
-            background: #e2e8f0;
-            color: #334155;
+            background: var(--muted);
+            color: var(--muted-foreground);
         }
 
         .status-active {
-            background: #dcfce7;
-            color: #166534;
+            background: rgba(34, 197, 94, 0.15);
+            color: #15803d;
         }
 
         .status-sold {
-            background: #fee2e2;
+            background: rgba(239, 68, 68, 0.15);
             color: #b91c1c;
         }
 
         .status-hidden {
-            background: #e2e8f0;
-            color: #334155;
+            background: var(--muted);
+            color: var(--muted-foreground);
         }
 
         .status-default {
-            background: #ede9fe;
+            background: rgba(139, 92, 246, 0.15);
             color: #6d28d9;
         }
 
         .book-meta {
             font-size: 14px;
-            color: #475569;
-            margin-bottom: 10px;
-            line-height: 1.7;
+            color: var(--muted-foreground);
+            margin-bottom: 12px;
+            line-height: 1.8;
         }
 
         .book-meta strong {
-            color: #0f172a;
+            color: var(--foreground);
+            font-weight: 600;
+        }
+
+        .book-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 12px;
         }
 
         .book-desc {
-            color: #334155;
-            line-height: 1.6;
+            color: var(--muted-foreground);
+            line-height: 1.7;
+            font-size: 14px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .inline-delete-form {
@@ -317,48 +400,57 @@ if (isset($_GET['added']) && $_GET['added'] == '1') {
         }
 
         .actions {
-            margin-top: 14px;
+            margin-top: auto;
+            padding-top: 14px;
             display: flex;
-            gap: 10px;
+            gap: 8px;
             flex-wrap: wrap;
             align-items: center;
         }
 
         .empty {
-            color: #475569;
-            padding: 24px;
-            border: 1px dashed #cbd5e1;
-            border-radius: 16px;
-            background: #f8fafc;
+            color: var(--muted-foreground);
+            padding: 48px 24px;
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            background: var(--secondary);
             text-align: center;
             line-height: 1.7;
         }
 
+        .empty-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 16px;
+            color: var(--muted-foreground);
+            opacity: 0.5;
+        }
+
         .empty strong {
             display: block;
-            color: #0f172a;
+            color: var(--foreground);
             font-size: 18px;
+            font-weight: 700;
             margin-bottom: 8px;
         }
 
-        @media (max-width: 700px) {
+        .empty p {
+            margin: 0 0 20px;
+            font-size: 15px;
+        }
+
+        @media (max-width: 768px) {
             .container {
-                padding: 0 14px 32px;
+                padding: 0 16px;
+                margin: 20px auto 40px;
             }
 
-            .card,
-            .book-item,
-            .empty {
-                border-radius: 16px;
-            }
-
-            .page-title {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .page-title h1 {
+            .page-header h1 {
                 font-size: 26px;
+            }
+
+            .card {
+                padding: 18px;
             }
 
             .toolbar {
@@ -366,16 +458,48 @@ if (isset($_GET['added']) && $_GET['added'] == '1') {
                 align-items: stretch;
             }
 
-            .btn {
-                width: 100%;
+            .book-item {
+                grid-template-columns: 1fr;
+                gap: 16px;
             }
 
             .book-image,
             .no-image {
                 width: 100%;
-                max-width: 220px;
+                max-width: 200px;
                 height: auto;
                 aspect-ratio: 14 / 18;
+            }
+
+            .book-item h3 {
+                font-size: 17px;
+            }
+
+            .actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .actions .btn {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-header h1 {
+                font-size: 24px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .book-item {
+                padding: 14px;
+            }
+
+            .toolbar-title {
+                font-size: 18px;
             }
         }
     </style>
@@ -384,21 +508,29 @@ if (isset($_GET['added']) && $_GET['added'] == '1') {
 <?php require_once __DIR__ . '/includes/topbar.php'; ?>
 
 <div class="container">
-    <div class="page-title">
-        <div>
-            <h1>Mənim kitablarım</h1>
-            <p>Paylaşdığın elanları burada idarə et.</p>
-        </div>
+    <div class="page-header">
+        <h1>Mənim kitablarım</h1>
+        <p>Paylaşdığın elanları burada idarə et.</p>
     </div>
 
     <div class="card">
         <div class="toolbar">
             <div class="toolbar-title">Əlavə etdiyim kitablar</div>
-            <a href="<?= e(basePath('add_book.php')) ?>" class="btn btn-primary">+ Yeni kitab əlavə et</a>
+            <a href="<?= e(basePath('add_book.php')) ?>" class="btn btn-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Yeni kitab əlavə et
+            </a>
         </div>
 
         <?php if ($success): ?>
-            <div class="alert-success"><?php echo e($success); ?></div>
+            <div class="alert-success">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <?= e($success) ?>
+            </div>
         <?php endif; ?>
 
         <?php if (count($myBooks) > 0): ?>
@@ -409,53 +541,74 @@ if (isset($_GET['added']) && $_GET['added'] == '1') {
                     $statusMeta = getStatusMeta($book["status"] ?? "");
                     ?>
                     <div class="book-item">
-                        <?php if (!empty($book["image"])): ?>
-                            <img class="book-image" src="/image.php?file=<?php echo urlencode($book["image"]); ?>" alt="Kitab şəkli">
-                        <?php else: ?>
-                            <div class="no-image">Şəkil yoxdur</div>
-                        <?php endif; ?>
-
-                        <h3><?php echo e($book["title"]); ?></h3>
-
-                        <div class="book-top-meta">
-                            <span class="badge <?php echo e($conditionMeta['class']); ?>">
-                                <?php echo e($conditionMeta['text']); ?>
-                            </span>
-                            <span class="badge <?php echo e($statusMeta['class']); ?>">
-                                <?php echo e($statusMeta['text']); ?>
-                            </span>
+                        <div class="book-image-wrap">
+                            <?php if (!empty($book["image"])): ?>
+                                <img class="book-image" src="<?= e(basePath('image.php?file=' . urlencode($book["image"]))) ?>" alt="<?= e($book["title"]) ?>">
+                            <?php else: ?>
+                                <div class="no-image">Şəkil yoxdur</div>
+                            <?php endif; ?>
                         </div>
 
-                        <div class="book-meta">
-                            <strong>Müəllif:</strong> <?php echo e($book["author"]); ?><br>
-                            <strong>Qiymət:</strong> <?php echo e($book["price"]); ?> AZN<br>
-                            <strong>Janr:</strong> <?php echo e($book["genre"] ?: "Göstərilməyib"); ?><br>
-                            <strong>Dil:</strong> <?php echo e($book["language"] ?? "Göstərilməyib"); ?><br>
-                            <strong>Vəziyyət:</strong> <?php echo e($conditionMeta['text']); ?><br>
-                            <strong>Nəşr ili:</strong> <?php echo e($book["published_year"] ?: "Göstərilməyib"); ?><br>
-                            <strong>Tarix:</strong> <?php echo e($book["created_at"]); ?>
-                        </div>
+                        <div class="book-content">
+                            <h3><?= e($book["title"]) ?></h3>
 
-                        <div class="book-desc">
-                            <?php echo nl2br(e($book["description"] ?: "Təsvir əlavə edilməyib.")); ?>
-                        </div>
+                            <div class="book-badges">
+                                <span class="badge <?= e($conditionMeta['class']) ?>">
+                                    <?= e($conditionMeta['text']) ?>
+                                </span>
+                                <span class="badge <?= e($statusMeta['class']) ?>">
+                                    <?= e($statusMeta['text']) ?>
+                                </span>
+                            </div>
 
-                        <div class="actions">
-                            <a href="<?= e(basePath('edit_book.php?id=' . (int)$book['id'])) ?>" class="btn btn-edit">Redaktə et</a>
+                            <div class="book-price"><?= e($book["price"]) ?> AZN</div>
 
-                            <form method="POST" action="<?= e(basePath('delete_book.php')) ?>" class="inline-delete-form">
-                                <input type="hidden" name="id" value="<?php echo (int)$book['id']; ?>">
-                                <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
-                                <button type="submit" class="btn-danger-link" onclick="return confirm('Bu kitabı silmək istədiyinizə əminsiniz?');">Sil</button>
-                            </form>
+                            <div class="book-meta">
+                                <strong>Müəllif:</strong> <?= e($book["author"]) ?><br>
+                                <strong>Janr:</strong> <?= e($book["genre"] ?: "Göstərilməyib") ?><br>
+                                <strong>Dil:</strong> <?= e($book["language"] ?? "Göstərilməyib") ?>
+                            </div>
+
+                            <div class="book-desc">
+                                <?= nl2br(e($book["description"] ?: "Təsvir əlavə edilməyib.")) ?>
+                            </div>
+
+                            <div class="actions">
+                                <a href="<?= e(basePath('edit_book.php?id=' . (int)$book['id'])) ?>" class="btn btn-secondary">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                    </svg>
+                                    Redaktə et
+                                </a>
+
+                                <form method="POST" action="<?= e(basePath('delete_book.php')) ?>" class="inline-delete-form">
+                                    <input type="hidden" name="id" value="<?= (int)$book['id'] ?>">
+                                    <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
+                                    <button type="submit" class="btn btn-danger" onclick="return confirm('Bu kitabı silmək istədiyinizə əminsiniz?');">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                                        </svg>
+                                        Sil
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 <?php endforeach; ?>
             </div>
         <?php else: ?>
             <div class="empty">
+                <svg class="empty-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                </svg>
                 <strong>Hələ kitab əlavə etməmisiniz</strong>
-                İlk elanını əlavə et və kitablarını burada idarə et.
+                <p>İlk elanını əlavə et və kitablarını burada idarə et.</p>
+                <a href="<?= e(basePath('add_book.php')) ?>" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                    Yeni kitab əlavə et
+                </a>
             </div>
         <?php endif; ?>
     </div>

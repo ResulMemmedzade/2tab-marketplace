@@ -41,11 +41,7 @@ try {
           AND m.is_read = 0
           AND (c.user_one_id = ? OR c.user_two_id = ?)
     ");
-    $stmt->execute([
-        $user_id,
-        $user_id,
-        $user_id
-    ]);
+    $stmt->execute([$user_id, $user_id, $user_id]);
     $unreadMessageCount = (int)$stmt->fetchColumn();
 } catch (PDOException $e) {
     error_log($e->getMessage());
@@ -83,288 +79,268 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2tab | Favorilər</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+    :root {
+        --background: #faf8f5;
+        --foreground: #2d2a26;
+        --card: #ffffff;
+        --primary: #c4704b;
+        --primary-hover: #b5613c;
+        --primary-foreground: #ffffff;
+        --secondary: #f3efe9;
+        --secondary-hover: #e8e2d9;
+        --secondary-foreground: #4a4540;
+        --muted: #f0ebe4;
+        --muted-foreground: #7a756d;
+        --border: #e5dfd6;
+        --radius: 16px;
+        --radius-sm: 12px;
+        --shadow-sm: 0 1px 3px rgba(45, 42, 38, 0.04), 0 1px 2px rgba(45, 42, 38, 0.06);
+        --shadow: 0 4px 20px rgba(45, 42, 38, 0.06), 0 2px 8px rgba(45, 42, 38, 0.04);
+        --shadow-lg: 0 12px 40px rgba(45, 42, 38, 0.08), 0 4px 16px rgba(45, 42, 38, 0.04);
+    }
+
     * {
         box-sizing: border-box;
+        margin: 0;
+        padding: 0;
     }
 
     body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: #f8fafc;
-        color: #1e293b;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: var(--background);
+        color: var(--foreground);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
     }
 
-    
     .container {
         max-width: 1200px;
-        margin: 30px auto;
-        padding: 0 20px 40px;
+        margin: 32px auto 48px;
+        padding: 0 20px;
+    }
+
+    .page-title {
+        margin-bottom: 24px;
     }
 
     .page-title h1 {
-        margin: 0 0 8px;
         font-size: 32px;
-        color: #0f172a;
+        font-weight: 800;
+        color: var(--foreground);
+        letter-spacing: -0.7px;
+        margin-bottom: 8px;
     }
 
     .page-title p {
-        margin: 0 0 24px;
-        color: #64748b;
-        line-height: 1.6;
+        color: var(--muted-foreground);
+        font-size: 15px;
+        line-height: 1.7;
     }
 
     .book-grid {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2, 1fr);
         gap: 16px;
+        align-items: stretch;
     }
 
+    @media (min-width: 640px) {
+        .book-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (min-width: 1024px) {
+        .book-grid { grid-template-columns: repeat(4, 1fr); gap: 20px; }
+    }
+
+    /* index.php ilə eyni book-card */
     .book-card {
-        background: #fff;
-        border-radius: 18px;
+        background: var(--card);
+        border-radius: var(--radius);
         padding: 12px;
-        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-        border: 1px solid #e2e8f0;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border);
         display: flex;
         flex-direction: column;
         height: 100%;
+        min-height: 100%;
+        transition: all 0.25s ease;
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer;
+    }
+
+    .book-card:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-4px);
+        border-color: transparent;
     }
 
     .book-image-wrap {
+        position: relative;
         width: 100%;
-        height: 220px;
-        border-radius: 14px;
-        border: 1px solid #e2e8f0;
-        background: #f8fafc;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        aspect-ratio: 3 / 4;
+        border-radius: var(--radius-sm);
+        background: var(--muted);
         overflow: hidden;
-        margin-bottom: 12px;
+        margin-bottom: 14px;
+        flex-shrink: 0;
     }
 
     .book-image {
         width: 100%;
         height: 100%;
-        object-fit: contain;
+        object-fit: cover;
+        transition: transform 0.3s ease;
         display: block;
-        padding: 8px;
+    }
+
+    .book-card:hover .book-image {
+        transform: scale(1.05);
     }
 
     .no-image {
         width: 100%;
-        height: 220px;
-        border-radius: 14px;
-        border: 1px dashed #cbd5e1;
-        background: #f8fafc;
-        color: #94a3b8;
+        height: 100%;
+        background: var(--muted);
+        color: var(--muted-foreground);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 14px;
+        font-size: 13px;
         text-align: center;
-        padding: 10px;
-        margin-bottom: 12px;
-    }
-
-    .book-card h3 {
-        margin: 0 0 8px;
-        font-size: 22px;
-        line-height: 1.3;
-        color: #0f172a;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        min-height: 58px;
-    }
-
-    .book-author {
-        color: #64748b;
-        font-size: 15px;
-        margin-bottom: 10px;
-        line-height: 1.4;
-        display: -webkit-box;
-        -webkit-line-clamp: 1;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .book-price {
-        font-size: 20px;
-        font-weight: 800;
-        color: #2563eb;
-        margin-bottom: 12px;
+        padding: 12px;
     }
 
     .badge {
         display: inline-flex;
         align-items: center;
-        justify-content: center;
-        padding: 7px 12px;
+        padding: 6px 11px;
         border-radius: 999px;
-        font-size: 13px;
+        font-size: 11px;
         font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.25px;
         white-space: nowrap;
     }
 
-    .book-condition {
+    .book-image-wrap .badge {
+        position: absolute;
+        left: 10px;
+        bottom: 10px;
+        z-index: 2;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+        backdrop-filter: blur(8px);
+    }
+
+    .condition-new      { background: rgba(220, 252, 231, 0.95); color: #166534; }
+    .condition-like-new { background: rgba(219, 234, 254, 0.95); color: #1d4ed8; }
+    .condition-good     { background: rgba(224, 242, 254, 0.95); color: #075985; }
+    .condition-fair     { background: rgba(255, 237, 213, 0.95); color: #c2410c; }
+    .condition-poor     { background: rgba(254, 226, 226, 0.95); color: #b91c1c; }
+    .condition-default  { background: rgba(240, 235, 228, 0.95); color: var(--muted-foreground); }
+
+    .book-card h3 {
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 1.35;
+        color: var(--foreground);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin-bottom: 6px;
+        min-height: 44px;
+    }
+
+    .book-author {
+        color: var(--muted-foreground);
+        font-size: 13px;
         margin-bottom: 12px;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 20px;
     }
 
-    .condition-new {
-        background: #22c55e;
-        color: white;
-    }
-
-    .condition-like-new {
-        background: #3b82f6;
-        color: white;
-    }
-
-    .condition-good {
-        background: #0ea5e9;
-        color: white;
-    }
-
-    .condition-fair {
-        background: #f97316;
-        color: white;
-    }
-
-    .condition-poor {
-        background: #ef4444;
-        color: white;
-    }
-
-    .condition-default {
-        background: #64748b;
-        color: white;
-    }
-
-    .book-actions {
-        margin-top: auto;
+    .book-meta {
         display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 8px;
+        margin-top: auto;
+        padding-top: 8px;
     }
 
-    .book-actions .btn,
-    .book-actions .favorite-btn {
-        width: 100%;
-    }
-
-    .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-        border: none;
-        border-radius: 12px;
-        padding: 12px 16px;
-        font-size: 14px;
+    .book-price {
+        font-size: 18px;
         font-weight: 700;
-        cursor: pointer;
-        transition: 0.2s ease;
+        color: var(--primary);
+        line-height: 1.2;
     }
 
-    .btn-light {
-        background: #e2e8f0;
-        color: #1e293b;
-    }
-
-    .btn-light:hover {
-        background: #cbd5e1;
-    }
-
-    .empty {
-        color: #64748b;
-        padding: 22px;
-        border: 1px dashed #cbd5e1;
-        border-radius: 16px;
-        background: #fff;
-        line-height: 1.7;
-    }
-
+    /* Favori çıxar düyməsi — kartın altında ayrıca */
     .favorite-form {
-        display: block;
-        margin: 0;
+        margin: 10px 0 0;
         padding: 0;
-        width: 100%;
     }
 
     .favorite-btn {
+        width: 100%;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        text-decoration: none;
-        padding: 11px 14px;
-        border-radius: 12px;
-        font-size: 14px;
-        font-weight: 700;
-        border: 1px solid #fecdd3;
-        background: #ffe4e6;
-        color: #be123c;
+        gap: 7px;
+        border: 1px solid #fecaca;
+        border-radius: var(--radius-sm);
+        padding: 10px 14px;
+        font-size: 13px;
+        font-weight: 600;
         cursor: pointer;
-        font-family: Arial, sans-serif;
-        transition: 0.2s ease;
+        font-family: inherit;
+        transition: all 0.2s ease;
+        background: #fee2e2;
+        color: #b91c1c;
     }
 
     .favorite-btn:hover {
-        background: #fecdd3;
+        background: #fecaca;
+        transform: translateY(-1px);
     }
 
-    @media (max-width: 640px) {
-        .container {
-            padding: 0 14px 32px;
-        }
-
-        .book-grid {
-            gap: 12px;
-        }
-
-        .book-card,
-        .empty {
-            border-radius: 16px;
-        }
-
-        .book-card {
-            padding: 10px;
-        }
-
-        .book-image-wrap,
-        .no-image {
-            height: 180px;
-        }
-
-        .book-card h3 {
-            font-size: 18px;
-            min-height: 48px;
-        }
-
-        .book-author {
-            font-size: 14px;
-        }
-
-        .book-price {
-            font-size: 18px;
-        }
-
-        .book-actions .btn,
-        .book-actions .favorite-btn {
-            padding: 10px 12px;
-            font-size: 13px;
-        }
-
-        .badge {
-            display: inline-flex;
-            width: auto;
-            max-width: 100%;
-            white-space: nowrap;
-        }
+    /* Wrapper: kart + favori düymə birlikdə */
+    .book-card-wrapper {
+        display: flex;
+        flex-direction: column;
     }
-</style>
+
+    .empty {
+        background: var(--card);
+        border: 2px dashed var(--border);
+        border-radius: var(--radius);
+        padding: 48px 24px;
+        color: var(--muted-foreground);
+        text-align: center;
+        font-size: 15px;
+        line-height: 1.7;
+    }
+
+    @media (max-width: 480px) {
+        .container { margin-top: 24px; padding: 0 16px 40px; }
+        .page-title h1 { font-size: 28px; }
+        .book-grid { gap: 12px; }
+        .book-card { padding: 10px; }
+        .book-card h3 { font-size: 14px; min-height: 38px; }
+        .book-price { font-size: 16px; }
+        .badge { font-size: 10px; padding: 5px 9px; }
+        .book-image-wrap .badge { left: 8px; bottom: 8px; }
+        .favorite-btn { font-size: 12px; padding: 9px 12px; }
+    }
+    </style>
 </head>
 <body>
 <?php require_once __DIR__ . '/includes/topbar.php'; ?>
@@ -378,53 +354,37 @@ try {
     <?php if (count($favorites) > 0): ?>
         <div class="book-grid">
             <?php foreach ($favorites as $book): ?>
-                <div class="book-card">
-                    <?php if (!empty($book["image"])): ?>
-                        <div class="book-image-wrap">
+                <?php
+                $conditionMeta = getConditionMeta($book['book_condition'] ?? $book['condition'] ?? '');
+                ?>
+                <a href="<?= e(basePath('book.php')) ?>?id=<?= (int)$book['id'] ?>" class="book-card">
+                    <div class="book-image-wrap">
+                        <?php if (!empty($book["image"])): ?>
                             <img
                                 class="book-image"
-                                src="<?= e(basePath('image.php?file=' . urlencode($book["image"]))) ?>"
-                                alt="Kitab şəkli"
+                                src="<?= e(basePath('image.php')) ?>?file=<?= urlencode($book["image"]) ?>"
+                                alt="<?= htmlspecialchars($book["title"], ENT_QUOTES, 'UTF-8') ?>"
+                                loading="lazy"
                             >
-                        </div>
-                    <?php else: ?>
-                        <div class="no-image">Şəkil yoxdur</div>
-                    <?php endif; ?>
+                        <?php else: ?>
+                            <div class="no-image">Şəkil yoxdur</div>
+                        <?php endif; ?>
 
-                    <h3><?= e($book["title"]) ?></h3>
-
-                    <div class="book-author">
-                        <?php echo htmlspecialchars($book["author"], ENT_QUOTES, 'UTF-8'); ?>
-                    </div>
-
-                    <div class="book-price">
-                        <?php echo htmlspecialchars($book["price"], ENT_QUOTES, 'UTF-8'); ?> AZN
-                    </div>
-
-                    <?php
-                    $conditionMeta = getConditionMeta($book['book_condition'] ?? $book['condition'] ?? '');
-                    ?>
-
-                    <div class="book-condition">
-                        <span class="badge <?= e($conditionMeta['class']) ?>">
-                            <?= e($conditionMeta['text']) ?>
+                        <span class="badge <?= htmlspecialchars($conditionMeta['class'], ENT_QUOTES, 'UTF-8') ?>">
+                            <?= htmlspecialchars($conditionMeta['text'], ENT_QUOTES, 'UTF-8') ?>
                         </span>
                     </div>
 
-                    <div class="book-actions">
-                        <a href="<?= e(basePath('book.php?id=' . (int)$book['id'])) ?>" class="btn btn-light">
-                            Ətraflı bax
-                        </a>
+                    <h3><?= htmlspecialchars($book["title"], ENT_QUOTES, 'UTF-8') ?></h3>
 
-                        <form method="POST" action="<?= e(basePath('toggle_favorite.php')) ?>" class="favorite-form">
-                            <input type="hidden" name="book_id" value="<?php echo (int)$book['id']; ?>">
-                            <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
-                            <button type="submit" class="favorite-btn">
-                                ❤️ Favoridən çıxar
-                            </button>
-                        </form>
+                    <div class="book-author">
+                        <?= htmlspecialchars($book["author"], ENT_QUOTES, 'UTF-8') ?>
                     </div>
-                </div>
+
+                    <div class="book-meta">
+                        <span class="book-price"><?= htmlspecialchars($book["price"], ENT_QUOTES, 'UTF-8') ?> AZN</span>
+                    </div>
+                </a>
             <?php endforeach; ?>
         </div>
     <?php else: ?>

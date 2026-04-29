@@ -26,7 +26,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $status = "active";
         $imageName = null;
 
-        // 🔥 BOOK SPAM CHECK
         if ($error === "") {
             $stmt = $pdo->prepare("
                 SELECT COUNT(*)
@@ -59,7 +58,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $book_condition = $_POST["book_condition"] ?? "good";
         $published_year = trim($_POST["published_year"] ?? "");
 
-        // 🔥 XSS CHECK
         if ($error === "") {
             if (
                 containsSuspiciousPayload($title) ||
@@ -182,61 +180,98 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2tab | Kitab əlavə et</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --background: #faf8f5;
+            --foreground: #2d2a26;
+            --card: #ffffff;
+            --primary: #c4704b;
+            --primary-hover: #b5613c;
+            --primary-foreground: #ffffff;
+            --secondary: #f3efe9;
+            --secondary-hover: #e8e2d9;
+            --secondary-foreground: #4a4540;
+            --muted: #f0ebe4;
+            --muted-foreground: #7a756d;
+            --border: #e5dfd6;
+            --radius: 16px;
+            --radius-sm: 12px;
+            --shadow-sm: 0 1px 3px rgba(45, 42, 38, 0.04), 0 1px 2px rgba(45, 42, 38, 0.06);
+            --shadow: 0 4px 20px rgba(45, 42, 38, 0.06), 0 2px 8px rgba(45, 42, 38, 0.04);
+        }
+
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f8fafc;
-            color: #1e293b;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--background);
+            color: var(--foreground);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }
 
         .container {
-            max-width: 880px;
-            margin: 30px auto;
-            padding: 0 20px 40px;
+            max-width: 920px;
+            margin: 32px auto 48px;
+            padding: 0 20px;
         }
 
-        .page-title {
+        .page-card,
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .page-card {
+            padding: 32px;
             margin-bottom: 20px;
         }
 
         .page-title h1 {
-            margin: 0 0 8px;
-            font-size: 30px;
+            font-size: 34px;
+            font-weight: 800;
+            color: var(--foreground);
+            letter-spacing: -0.8px;
+            line-height: 1.15;
+            margin-bottom: 8px;
         }
 
         .page-title p {
-            margin: 0;
-            color: #64748b;
-            line-height: 1.6;
+            color: var(--muted-foreground);
+            font-size: 15px;
+            line-height: 1.7;
         }
 
         .card {
-            background: #fff;
-            border-radius: 18px;
-            padding: 24px;
-            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-            border: 1px solid #e2e8f0;
+            padding: 28px;
         }
 
         .card h2 {
-            margin-top: 0;
-            margin-bottom: 18px;
             font-size: 22px;
-            color: #0f172a;
+            font-weight: 700;
+            color: var(--foreground);
+            letter-spacing: -0.3px;
+            margin-bottom: 20px;
         }
 
         .alert-error {
-            background: #fef2f2;
-            color: #b91c1c;
+            background: #fee2e2;
+            color: #991b1b;
             border: 1px solid #fecaca;
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 15px;
+            padding: 13px 14px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 18px;
+            font-size: 14px;
+            font-weight: 600;
         }
 
         .form-group {
@@ -246,8 +281,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         label {
             display: block;
             margin-bottom: 8px;
-            font-weight: 600;
-            color: #334155;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--secondary-foreground);
+        }
+
+        .field-help {
+            display: block;
+            color: var(--muted-foreground);
+            font-size: 13px;
+            margin-bottom: 8px;
         }
 
         input,
@@ -255,53 +298,66 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         select {
             width: 100%;
             padding: 13px 14px;
-            border: 1px solid #cbd5e1;
-            border-radius: 12px;
-            font-size: 15px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
             outline: none;
-            background: #fff;
-            color: #0f172a;
+            background: var(--secondary);
+            color: var(--foreground);
+            font-family: inherit;
+            transition: all 0.2s ease;
         }
 
         input[type="file"] {
-            padding: 10px 12px;
+            padding: 11px 12px;
+            cursor: pointer;
         }
 
         input:focus,
         textarea:focus,
         select:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+            border-color: var(--primary);
+            background: var(--card);
+            box-shadow: 0 0 0 3px rgba(196, 112, 75, 0.1);
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+            color: var(--muted-foreground);
         }
 
         textarea {
-            min-height: 120px;
+            min-height: 130px;
             resize: vertical;
         }
 
         .btn {
-            border: none;
-            border-radius: 12px;
-            padding: 13px 18px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            text-decoration: none;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            border: none;
+            border-radius: var(--radius-sm);
+            padding: 14px 22px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
             white-space: nowrap;
-            transition: 0.2s ease;
+            font-family: inherit;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #2563eb, #1d4ed8);
-            color: white;
+            background: var(--primary);
+            color: var(--primary-foreground);
+            box-shadow: var(--shadow-sm);
         }
 
         .btn-primary:hover {
+            background: var(--primary-hover);
             transform: translateY(-1px);
-            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.18);
+            box-shadow: var(--shadow);
         }
 
         .row-2 {
@@ -324,44 +380,67 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         .price-control input {
             flex: 1;
-            margin: 0;
         }
 
         .price-btn {
             width: 44px;
             height: 44px;
-            border: 1px solid #cbd5e1;
-            background: #fff;
-            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--secondary);
+            color: var(--secondary-foreground);
+            border-radius: var(--radius-sm);
             font-size: 20px;
-            font-weight: bold;
+            font-weight: 800;
             cursor: pointer;
             flex-shrink: 0;
+            transition: all 0.2s ease;
         }
 
         .price-btn:hover {
-            background: #f1f5f9;
+            background: var(--secondary-hover);
+            transform: translateY(-1px);
+        }
+
+        .submit-row {
+            display: flex;
+            justify-content: flex-start;
+            margin-top: 8px;
         }
 
         @media (max-width: 900px) {
             .row-2,
             .row-3 {
                 grid-template-columns: 1fr;
+                gap: 0;
             }
         }
 
-        @media (max-width: 520px) {
+        @media (max-width: 640px) {
             .container {
-                padding: 0 14px 32px;
+                margin: 20px auto 36px;
+                padding: 0 16px;
+            }
+
+            .page-card {
+                padding: 24px 20px;
             }
 
             .card {
-                border-radius: 16px;
-                padding: 18px;
+                padding: 22px 18px;
             }
 
             .page-title h1 {
-                font-size: 26px;
+                font-size: 30px;
+            }
+
+            .card h2 {
+                font-size: 20px;
+            }
+
+            .btn {
+                width: 100%;
+                padding: 13px 18px;
+                font-size: 14px;
             }
         }
     </style>
@@ -370,13 +449,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <?php require_once __DIR__ . '/includes/topbar.php'; ?>
 
 <div class="container">
-    <div class="page-title">
-        <h1>Kitab əlavə et</h1>
-        <p>Yeni kitab elanını əlavə et.</p>
+    <div class="page-card">
+        <div class="page-title">
+            <h1>Kitab əlavə et</h1>
+            <p>Yeni kitab elanını əlavə et. Məlumatları düzgün yaz ki, alıcı kitabı rahat tapa bilsin.</p>
+        </div>
     </div>
 
     <div class="card">
-        <h2>Yeni kitab əlavə et</h2>
+        <h2>Yeni kitab məlumatları</h2>
 
         <?php if ($error): ?>
             <div class="alert-error"><?php echo e($error); ?></div>
@@ -387,7 +468,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             <div class="form-group">
                 <label for="image">Kitab şəkli</label>
-                <small style="color:#64748b;">Maksimum ölçü: 10 MB (jpg, png, webp)</small>
+                <small class="field-help">Maksimum ölçü: 10 MB (jpg, png, webp)</small>
                 <input type="file" id="image" name="image">
             </div>
 
@@ -472,7 +553,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary">Kitabı əlavə et</button>
+            <div class="submit-row">
+                <button type="submit" class="btn btn-primary">Kitabı əlavə et</button>
+            </div>
         </form>
     </div>
 </div>
