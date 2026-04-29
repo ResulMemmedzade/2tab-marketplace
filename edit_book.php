@@ -43,6 +43,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $book_condition = $_POST["book_condition"] ?? "good";
     $published_year = trim($_POST["published_year"] ?? "");
     $currentImage = $book["image"] ?? null;
+    if (
+        containsSuspiciousPayload($title) ||
+        containsSuspiciousPayload($author) ||
+        containsSuspiciousPayload($description)
+    ) {
+        addUserStrike($pdo, $seller_id, 'XSS attempt in edit');
+    
+        appLog('security', 'XSS payload detected in edit_book', [
+            'user_id' => $seller_id
+        ]);
+    
+        $error = "Təhlükəli məzmun aşkar edildi.";
+    }
 
     $allowedConditions = ["new", "like_new", "good", "fair", "poor"];
     $allowedLanguages = ["Azərbaycan", "İngilis", "Rus", "Türk", ""];
@@ -51,8 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         "Tarix","Din","Psixologiya","Roman","Detektiv","Fantastika",""
     ];
 
-    if ($title === "" || $author === "" || $price === "") {
-        $error = "Kitab adı, müəllif və qiymət mütləqdir.";
+    if ($error === "" && ($title === "" || $author === "" || $price === "")) {        $error = "Kitab adı, müəllif və qiymət mütləqdir.";
     } elseif (!preg_match('/^\d+(\.\d{1,2})?$/', $price) || (float)$price < 0) {
         $error = "Qiymət düzgün deyil.";
     } elseif (!in_array($genre, $allowedGenres, true)) {
@@ -461,7 +473,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         <?php endif; ?>
 
         <form method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
+            <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
             <input type="hidden" name="id" value="<?php echo (int)$book['id']; ?>">
 
             <?php if (!empty($book["image"])): ?>

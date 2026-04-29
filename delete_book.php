@@ -3,6 +3,7 @@
 require_once "config.php";
 
 requireLogin();
+ensureCsrfToken();
 
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     redirectTo("mybooks.php");

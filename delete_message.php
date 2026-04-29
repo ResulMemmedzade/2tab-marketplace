@@ -47,4 +47,4 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$messageId, $currentUserId]);
 
-redirect(basePath("conversation.php?id=" . (int)$message["conversation_id"]));
+redirectTo("conversation.php?id=" . (int)$message["conversation_id"]);

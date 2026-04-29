@@ -129,10 +129,10 @@ try {
     }
 
     $stmt = $pdo->prepare("
-        INSERT INTO messages (conversation_id, sender_id, message)
-        VALUES (?, ?, ?)
-    ");
-    $stmt->execute([$conversationId, $currentUserId, $message]);
+    INSERT INTO messages (conversation_id, sender_id, message, message_type)
+    VALUES (?, ?, ?, 'text')
+");
+$stmt->execute([$conversationId, $currentUserId, $message]);
 
     $stmt = $pdo->prepare("
         UPDATE conversations

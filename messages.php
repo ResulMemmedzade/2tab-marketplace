@@ -208,17 +208,22 @@ body {
         <div class="chat-list">
             <?php foreach ($conversations as $chat): ?>
                 <?php
-                $lastMessageType = $chat["last_message_type"] ?? "text";
+$lastMessageType = $chat["last_message_type"] ?: "text";
 
-                if ($lastMessageType === "image") {
-                    $preview = "(Şəkil göndərilib)";
-                } else {
-                    $preview = trim((string)($chat["last_message"] ?? ""));
-                    if ($preview !== "" && mb_strlen($preview) > 90) {
-                        $preview = mb_substr($preview, 0, 90) . "...";
-                    }
-                }
-                ?>
+if ($lastMessageType === "image") {
+    $preview = "(Şəkil göndərilib)";
+} else {
+    $preview = trim((string)($chat["last_message"] ?? ""));
+
+    if ($preview === "") {
+        $preview = "Hələ mesaj yoxdur.";
+    }
+
+    if (mb_strlen($preview) > 90) {
+        $preview = mb_substr($preview, 0, 90) . "...";
+    }
+}
+?>
                 <a class="chat-card" href="<?= e(basePath('conversation.php?id=' . (int)$chat["id"])) ?>">
                     <div class="chat-top">
                         <div class="chat-name">

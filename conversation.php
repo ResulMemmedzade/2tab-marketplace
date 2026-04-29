@@ -814,13 +814,14 @@ $stmt->execute([$conversationId, $currentUserId]);
                             data-can-edit="<?= $canEdit ? '1' : '0' ?>"
                             data-can-delete="<?= $canDelete ? '1' : '0' ?>"
                         >
-                            <?php if ($messageType === "image"): ?>
-                                <img
-                                    src="<?= e(basePath('uploads/' . ltrim((string)$msg["message"], '/'))) ?>"
-                                    class="chat-image js-full-image"
-                                    alt="Göndərilən şəkil"
-                                >
-                            <?php else: ?>
+                        <?php if ($messageType === "image"): ?>
+    <?php $imageName = basename((string)$msg["message"]); ?>
+    <img
+        src="<?= e(basePath('uploads/' . $imageName)) ?>"
+        class="chat-image js-full-image"
+        alt="Göndərilən şəkil"
+    >
+<?php else: ?>
                                 <div class="message-text"><?= nl2br(e($msg["message"])) ?></div>
 
                                 <?php if ($canEdit): ?>
@@ -888,8 +889,8 @@ $stmt->execute([$conversationId, $currentUserId]);
                         required
                     ></textarea>
 
-                    <input type="file" name="image" id="galleryImage" accept="image/*">
-                    <input type="file" name="image" id="cameraImage" accept="image/*" capture="environment">
+                    <input type="file" name="image_gallery" id="galleryImage" accept="image/*">
+                    <input type="file" name="image_camera" id="cameraImage" accept="image/*" capture="environment">
 
                     <div class="attach-wrap">
                         <button type="button" class="send-btn" id="imageBtn" aria-label="Fayl əlavə et">
@@ -1261,6 +1262,11 @@ async function sendMessage() {
 
     const message = messageInput.value.trim();
 
+    if (message.length > 5000) {
+        showError("Mesaj çox uzundur.");
+        return;
+    }
+
     if (message === "") {
         showError("Mesaj boş ola bilməz.");
         return;
@@ -1391,7 +1397,7 @@ async function deleteSelectedMessage() {
             }
         });
 
-        if (response.ok || response.redirected) {
+        if (response.ok) {
             const row = selectedBubble.closest(".message-row");
             if (row) row.remove();
             clearSelection();
