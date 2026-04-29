@@ -76,6 +76,13 @@ try {
 $hideBooksStmt->execute([$targetId]);
         
                 flashSuccess("İstifadəçi BAN edildi.");
+                appLog('admin_action', 'Admin banned user', [
+                    'admin_id' => $currentAdminId,
+                    'action' => 'ban_user',
+                    'target_user_id' => $targetId,
+                    'ip' => $_SERVER["REMOTE_ADDR"] ?? null,
+                    'user_agent' => $_SERVER["HTTP_USER_AGENT"] ?? null
+                ]);
             }
         
             redirectTo("admin_users.php");
