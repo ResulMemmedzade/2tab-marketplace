@@ -815,12 +815,11 @@ $stmt->execute([$conversationId, $currentUserId]);
                             data-can-delete="<?= $canDelete ? '1' : '0' ?>"
                         >
                         <?php if ($messageType === "image"): ?>
-    <?php $imageName = basename((string)$msg["message"]); ?>
-    <img
-        src="<?= e(basePath('image.php?file=' . urlencode($message['message']))) ?>"
-        class="chat-image js-full-image"
-        alt="Göndərilən şəkil"
-    >
+                            <img
+    src="<?= e(basePath('image.php?file=' . urlencode((string)$msg['message']))) ?>"
+    class="chat-image js-full-image"
+    alt="Göndərilən şəkil"
+>
 <?php else: ?>
                                 <div class="message-text"><?= nl2br(e($msg["message"])) ?></div>
 
