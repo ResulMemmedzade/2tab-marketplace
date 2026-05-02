@@ -817,7 +817,7 @@ $stmt->execute([$conversationId, $currentUserId]);
                         <?php if ($messageType === "image"): ?>
     <?php $imageName = basename((string)$msg["message"]); ?>
     <img
-        src="<?= e(basePath('uploads/' . $imageName)) ?>"
+        src="<?= e(basePath('image.php?file=' . urlencode($message['message']))) ?>"
         class="chat-image js-full-image"
         alt="Göndərilən şəkil"
     >
