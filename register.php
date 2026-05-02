@@ -366,7 +366,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </div>
 
             <div class="form-group">
-                <label>Şifrə</label>
+                <label>Şifrə yaradın</label>
                 <div class="password-wrap">
                     <input type="password" name="password" id="registerPassword" placeholder="Şifrənizi daxil edin" required>
                     <button type="button" class="toggle-password" data-target="registerPassword">Göstər</button>
