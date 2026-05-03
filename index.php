@@ -624,6 +624,7 @@ $userName = $_SESSION["name"] ?? "";
                                     src="<?= e(basePath('image.php')) ?>?file=<?= urlencode($book["image"]) ?>"
                                     alt="<?= htmlspecialchars($book["title"], ENT_QUOTES, 'UTF-8') ?>"
                                     loading="lazy"
+                                    decoding="async"
                                 >
                             <?php else: ?>
                                 <div class="no-image">Şəkil yoxdur</div>

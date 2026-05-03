@@ -543,8 +543,13 @@ if (isset($_GET['added']) && $_GET['added'] == '1') {
                     <div class="book-item">
                         <div class="book-image-wrap">
                             <?php if (!empty($book["image"])): ?>
-                                <img class="book-image" src="<?= e(basePath('image.php?file=' . urlencode($book["image"]))) ?>" alt="<?= e($book["title"]) ?>">
-                            <?php else: ?>
+                                <img 
+    class="book-image" 
+    src="<?= e(basePath('image.php?file=' . urlencode($book["image"]))) ?>" 
+    alt="<?= e($book["title"]) ?>"
+    loading="lazy"
+    decoding="async"
+>                            <?php else: ?>
                                 <div class="no-image">Şəkil yoxdur</div>
                             <?php endif; ?>
                         </div>

@@ -726,6 +726,7 @@ $filtersActive = ($search !== "" || $genre !== "" || $language !== "" || $condit
                                 src="<?= e(basePath('image.php?file=' . urlencode($book["image"]))) ?>"
                                 alt="<?= e($book["title"]); ?>"
                                 loading="lazy"
+                                decoding="async"
                             >
                         <?php else: ?>
                             <div class="no-image">Şəkil yoxdur</div>
