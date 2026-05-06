@@ -127,13 +127,9 @@ createRememberToken($pdo, (int)$user["id"]);
                     'email' => $user["email"]
                 ]);
         
-                $target = basePath("notifications.php?from=login");
-        
-                if ($redirect && isSafeRedirect($redirect)) {
-                    $target = $redirect;
-                }
-        
-                redirect($target);
+                unset($_SESSION['return_to']);
+
+redirectTo("notifications.php?from=login");
             }
 
         } else {
