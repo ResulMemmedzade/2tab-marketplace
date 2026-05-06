@@ -111,7 +111,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     loginUserToSession($user);
 createRememberToken($pdo, (int)$user["id"]);
         
-                    redirectTo("notifications.php");
+redirectTo("notifications.php?from=login");
                 }
         
             } else {
@@ -127,7 +127,7 @@ createRememberToken($pdo, (int)$user["id"]);
                     'email' => $user["email"]
                 ]);
         
-                $target = pullReturnTo(basePath("notifications.php"));
+                $target = basePath("notifications.php?from=login");
         
                 if ($redirect && isSafeRedirect($redirect)) {
                     $target = $redirect;
