@@ -4,10 +4,12 @@ require_once __DIR__ . '/config.php';
 requireLogin();
 
 $pageTitle = 'Bildirişlər';
-$redirectAfter = 'dashboard.php';
+$from = $_GET['from'] ?? '';
 
-if (($_GET['from'] ?? '') === 'messages') {
+if ($from === 'messages') {
     $redirectAfter = 'messages.php';
+} else {
+    $redirectAfter = 'dashboard.php';
 }
 ?>
 <!DOCTYPE html>
@@ -144,7 +146,7 @@ if (($_GET['from'] ?? '') === 'messages') {
                 İcazə ver
             </button>
 
-            <a href="messages.php" class="notification-btn notification-btn-secondary">
+            <a href="<?= e($redirectAfter) ?>" class="notification-btn notification-btn-secondary">
                 İcazə vermə
             </a>
 
@@ -233,7 +235,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
             alert("Bildirişlər aktiv edildi.");
-            window.location.href = "messages.php";
+            window.location.href = <?= json_encode($redirectAfter) ?>;
 
         } catch (error) {
             console.error(error);

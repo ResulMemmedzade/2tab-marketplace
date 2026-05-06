@@ -13,8 +13,8 @@ self.addEventListener("push", function (event) {
 
     const options = {
         body: data.body || "Yeni bildirişiniz var.",
-        icon: "https://2tab.store/assets/icons/push-icon.png",
-badge: "https://2tab.store/assets/icons/push-icon.png",
+        icon: "/assets/icons/notification-icon.png",
+        badge: "/assets/icons/notification-icon.png",
         data: {
             url: data.url || "/"
         }
