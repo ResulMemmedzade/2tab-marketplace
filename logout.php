@@ -1,5 +1,10 @@
 <?php
+
 require_once "config.php";
+
+if (isset($pdo) && function_exists('deleteCurrentRememberToken')) {
+    deleteCurrentRememberToken($pdo);
+}
 
 $_SESSION = [];
 

@@ -312,6 +312,75 @@ try {
             </div>
         </div>
     </div>
+    <script>
+async function urlBase64ToUint8Array(base64String) {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
 
+    const base64 = (base64String + padding)
+        .replace(/-/g, "+")
+        .replace(/_/g, "/");
+
+    const rawData = window.atob(base64);
+
+    const outputArray = new Uint8Array(rawData.length);
+
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+
+    return outputArray;
+}
+
+async function setupPushNotifications() {
+    try {
+        if (!("serviceWorker" in navigator)) {
+            return;
+        }
+
+        if (!("PushManager" in window)) {
+            return;
+        }
+
+        const permission = await Notification.requestPermission();
+
+        if (permission !== "granted") {
+            return;
+        }
+
+        const registration = await navigator.serviceWorker.register(
+            "<?= e(basePath('service-worker.js')) ?>"
+        );
+
+        let subscription = await registration.pushManager.getSubscription();
+
+        if (!subscription) {
+            const vapidPublicKey = "<?= e(VAPID_PUBLIC_KEY) ?>";
+
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: await urlBase64ToUint8Array(vapidPublicKey)
+            });
+        }
+
+        const formData = new FormData();
+
+        formData.append("csrf_token", "<?= e(csrfToken()) ?>");
+        formData.append("subscription", JSON.stringify(subscription));
+
+        await fetch("<?= e(basePath('save_push_subscription.php')) ?>", {
+            method: "POST",
+            body: formData,
+            credentials: "same-origin"
+        });
+
+    } catch (e) {
+        console.error("Push notification setup error:", e);
+    }
+}
+
+window.addEventListener("load", function () {
+    setupPushNotifications();
+});
+</script>
 </body>
 </html>

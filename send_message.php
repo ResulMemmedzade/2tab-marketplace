@@ -2,69 +2,62 @@
 
 require_once "config.php";
 require_once "rate_limiter.php";
+require_once "send_push_notification.php";
 
 header('Content-Type: application/json; charset=UTF-8');
 
-if (!isLoggedIn()) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Giriş edilməyib.'
-    ]);
+function responseJson($success, $message, $extra = [])
+{
+    echo json_encode(array_merge([
+        'success' => $success,
+        'message' => $message
+    ], $extra));
     exit;
 }
 
+if (!isLoggedIn()) {
+    responseJson(false, 'Giriş edilməyib.');
+}
+
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Yanlış sorğu.'
-    ]);
-    exit;
+    responseJson(false, 'Yanlış sorğu.');
 }
 
 try {
     verifyCsrfToken($_POST['csrf_token'] ?? null);
 } catch (Throwable $e) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Sorğu etibarsızdır.'
-    ]);
-    exit;
+    responseJson(false, 'Sorğu etibarsızdır.');
 }
 
 $currentUserId = currentUserId();
-$conversationId = (int) ($_POST["conversation_id"] ?? 0);
+$conversationId = (int)($_POST["conversation_id"] ?? 0);
 $message = trim($_POST["message"] ?? "");
 
 if ($currentUserId === null) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Giriş edilməyib.'
-    ]);
-    exit;
+    responseJson(false, 'Giriş edilməyib.');
 }
 
 if ($conversationId <= 0) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Conversation ID yanlışdır.'
-    ]);
-    exit;
+    responseJson(false, 'Conversation ID yanlışdır.');
 }
 
 if ($message === "") {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Mesaj boş ola bilməz.'
-    ]);
-    exit;
+    responseJson(false, 'Mesaj boş ola bilməz.');
 }
 
 if (mb_strlen($message) > 5000) {
-    echo json_encode([
-        'success' => false,
-        'message' => 'Mesaj çox uzundur.'
+    responseJson(false, 'Mesaj çox uzundur.');
+}
+
+if (containsSuspiciousPayload($message)) {
+    addUserStrike($pdo, $currentUserId, 'XSS attempt in message');
+
+    appLog('security', 'XSS payload detected in message', [
+        'user_id' => $currentUserId,
+        'conversation_id' => $conversationId
     ]);
-    exit;
+
+    responseJson(false, 'Təhlükəli məzmun aşkar edildi.');
 }
 
 try {
@@ -84,11 +77,7 @@ try {
             'conversation_id' => $conversationId,
         ]);
 
-        echo json_encode([
-            'success' => false,
-            'message' => 'Bu söhbətə giriş icazəniz yoxdur.'
-        ]);
-        exit;
+        responseJson(false, 'Bu söhbətə giriş icazəniz yoxdur.');
     }
 
     $messageRateKey = rateLimitKey('message', (string)$currentUserId);
@@ -102,12 +91,10 @@ try {
             'conversation_id' => $conversationId,
             'remaining_seconds' => $remainingSeconds
         ]);
+
         addUserStrike($pdo, $currentUserId, 'Mesaj spamı: qısa müddətdə çox mesaj göndərmə');
-        echo json_encode([
-            'success' => false,
-            'message' => "Çox tez-tez mesaj göndərirsiniz. {$remainingSeconds} saniyə sonra yenidən cəhd edin."
-        ]);
-        exit;
+
+        responseJson(false, "Çox tez-tez mesaj göndərirsiniz. {$remainingSeconds} saniyə sonra yenidən cəhd edin.");
     }
 
     $attemptResult = registerRateLimitAttempt($pdo, $messageRateKey, 10, 60, 60);
@@ -120,19 +107,19 @@ try {
             'conversation_id' => $conversationId,
             'remaining_seconds' => $remainingSeconds
         ]);
+
         addUserStrike($pdo, $currentUserId, 'Mesaj spamı: limit keçildi');
-        echo json_encode([
-            'success' => false,
-            'message' => "Mesaj limiti keçildi. {$remainingSeconds} saniyə sonra yenidən cəhd edin."
-        ]);
-        exit;
+
+        responseJson(false, "Mesaj limiti keçildi. {$remainingSeconds} saniyə sonra yenidən cəhd edin.");
     }
 
     $stmt = $pdo->prepare("
-    INSERT INTO messages (conversation_id, sender_id, message, message_type)
-    VALUES (?, ?, ?, 'text')
-");
-$stmt->execute([$conversationId, $currentUserId, $message]);
+        INSERT INTO messages (conversation_id, sender_id, message, message_type, is_read)
+        VALUES (?, ?, ?, 'text', 0)
+    ");
+    $stmt->execute([$conversationId, $currentUserId, $message]);
+
+    $messageId = (int)$pdo->lastInsertId();
 
     $stmt = $pdo->prepare("
         UPDATE conversations
@@ -141,17 +128,43 @@ $stmt->execute([$conversationId, $currentUserId, $message]);
     ");
     $stmt->execute([$conversationId]);
 
+    $receiverId = null;
+
+    if ((int)$conversation["user_one_id"] === (int)$currentUserId) {
+        $receiverId = (int)$conversation["user_two_id"];
+    } elseif ((int)$conversation["user_two_id"] === (int)$currentUserId) {
+        $receiverId = (int)$conversation["user_one_id"];
+    }
+
+    if ($receiverId !== null && function_exists("sendPushNotificationToUser")) {
+        $senderName = $_SESSION["name"] ?? "2tab istifadəçisi";
+
+        $notificationBody = mb_strlen($message) > 80
+            ? mb_substr($message, 0, 80) . "..."
+            : $message;
+
+        sendPushNotificationToUser(
+            $pdo,
+            $receiverId,
+            "Yeni mesaj - " . $senderName,
+            $notificationBody,
+            basePath("conversation.php?id=" . $conversationId)
+        );
+    }
+
     appLog('chat_action', 'Message sent successfully', [
         'user_id' => $currentUserId,
         'conversation_id' => $conversationId,
+        'message_id' => $messageId
     ]);
 
-    echo json_encode([
-        'success' => true,
-        'message' => nl2br(e($message)),
+    responseJson(true, nl2br(e($message)), [
+        'message_id' => $messageId,
+        'raw_message' => $message,
+        'message_type' => 'text',
+        'is_read' => 0,
         'time' => 'indi'
     ]);
-    exit;
 
 } catch (PDOException $e) {
     error_log($e->getMessage());
@@ -162,9 +175,5 @@ $stmt->execute([$conversationId, $currentUserId, $message]);
         'error' => $e->getMessage(),
     ]);
 
-    echo json_encode([
-        'success' => false,
-        'message' => 'Mesaj göndərilərkən xəta baş verdi.'
-    ]);
-    exit;
+    responseJson(false, 'Mesaj göndərilərkən xəta baş verdi.');
 }

@@ -67,7 +67,8 @@ define('APP_ENV', (string) env('APP_ENV', 'local'));
 define('APP_DEBUG', filter_var(env('APP_DEBUG', false), FILTER_VALIDATE_BOOLEAN));
 define('APP_BASE_URL', rtrim((string) env('APP_BASE_URL', ''), '/'));
 define('UPLOAD_STORAGE_PATH', (string) env('UPLOAD_STORAGE_PATH', 'C:/wamp64/2tab_uploads'));
-
+define('VAPID_PUBLIC_KEY', (string) env('VAPID_PUBLIC_KEY', ''));
+define('VAPID_PRIVATE_KEY', (string) env('VAPID_PRIVATE_KEY', ''));
 /*
 |--------------------------------------------------------------------------
 | Error handling
@@ -444,3 +445,6 @@ function containsSuspiciousPayload(string $value): bool
     return false;
 }
 require_once __DIR__ . '/auth.php';
+if (isset($pdo) && function_exists('attemptRememberLogin')) {
+    attemptRememberLogin($pdo);
+}

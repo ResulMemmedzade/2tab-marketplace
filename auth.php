@@ -114,3 +114,193 @@ if (!function_exists('verifyCsrfToken')) {
         }
     }
 }
+if (!function_exists('loginUserToSession')) {
+    function loginUserToSession(array $user): void
+    {
+        session_regenerate_id(true);
+
+        $_SESSION["user_id"] = (int)$user["id"];
+        $_SESSION["name"] = $user["name"];
+        $_SESSION["email"] = $user["email"];
+        $_SESSION["role"] = $user["role"];
+    }
+}
+
+if (!function_exists('createRememberToken')) {
+    function createRememberToken(PDO $pdo, int $userId): void
+    {
+        $selector = bin2hex(random_bytes(16));
+        $validator = bin2hex(random_bytes(32));
+        $tokenHash = hash('sha256', $validator);
+        $expiresAt = date('Y-m-d H:i:s', time() + (60 * 60 * 24 * 30));
+
+        $stmt = $pdo->prepare("
+            INSERT INTO remember_tokens
+                (user_id, selector, token_hash, expires_at, user_agent, ip_address)
+            VALUES
+                (?, ?, ?, ?, ?, ?)
+        ");
+
+        $stmt->execute([
+            $userId,
+            $selector,
+            $tokenHash,
+            $expiresAt,
+            substr($_SERVER['HTTP_USER_AGENT'] ?? '', 0, 255),
+            $_SERVER['REMOTE_ADDR'] ?? null
+        ]);
+
+        $isHttps = (
+            (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || (($_SERVER['SERVER_PORT'] ?? null) == 443)
+        );
+
+        setcookie('remember_me', $selector . ':' . $validator, [
+            'expires' => time() + (60 * 60 * 24 * 30),
+            'path' => '/',
+            'secure' => $isHttps,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+    }
+}
+
+if (!function_exists('clearRememberTokenCookie')) {
+    function clearRememberTokenCookie(): void
+    {
+        $isHttps = (
+            (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || (($_SERVER['SERVER_PORT'] ?? null) == 443)
+        );
+
+        setcookie('remember_me', '', [
+            'expires' => time() - 3600,
+            'path' => '/',
+            'secure' => $isHttps,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+    }
+}
+
+if (!function_exists('deleteCurrentRememberToken')) {
+    function deleteCurrentRememberToken(PDO $pdo): void
+    {
+        $cookie = $_COOKIE['remember_me'] ?? '';
+
+        if (!is_string($cookie) || !str_contains($cookie, ':')) {
+            clearRememberTokenCookie();
+            return;
+        }
+
+        [$selector] = explode(':', $cookie, 2);
+
+        if ($selector !== '') {
+            $stmt = $pdo->prepare("DELETE FROM remember_tokens WHERE selector = ?");
+            $stmt->execute([$selector]);
+        }
+
+        clearRememberTokenCookie();
+    }
+}
+
+if (!function_exists('attemptRememberLogin')) {
+    function attemptRememberLogin(PDO $pdo): void
+    {
+        if (isLoggedIn()) {
+            return;
+        }
+
+        $cookie = $_COOKIE['remember_me'] ?? '';
+
+        if (!is_string($cookie) || !str_contains($cookie, ':')) {
+            return;
+        }
+
+        [$selector, $validator] = explode(':', $cookie, 2);
+
+        if (
+            !preg_match('/^[a-f0-9]{32}$/', $selector) ||
+            !preg_match('/^[a-f0-9]{64}$/', $validator)
+        ) {
+            clearRememberTokenCookie();
+            return;
+        }
+
+        $stmt = $pdo->prepare("
+            SELECT rt.*, u.id, u.name, u.email, u.role, u.status, u.ban_expires_at
+            FROM remember_tokens rt
+            JOIN users u ON u.id = rt.user_id
+            WHERE rt.selector = ?
+            LIMIT 1
+        ");
+        $stmt->execute([$selector]);
+        $row = $stmt->fetch();
+
+        if (!$row) {
+            clearRememberTokenCookie();
+            return;
+        }
+
+        if (strtotime($row['expires_at']) < time()) {
+            $stmt = $pdo->prepare("DELETE FROM remember_tokens WHERE selector = ?");
+            $stmt->execute([$selector]);
+            clearRememberTokenCookie();
+            return;
+        }
+
+        $validatorHash = hash('sha256', $validator);
+
+        if (!hash_equals($row['token_hash'], $validatorHash)) {
+            $stmt = $pdo->prepare("DELETE FROM remember_tokens WHERE user_id = ?");
+            $stmt->execute([(int)$row['user_id']]);
+            clearRememberTokenCookie();
+            return;
+        }
+
+        if (($row["status"] ?? "active") === "banned") {
+            clearRememberTokenCookie();
+            return;
+        }
+
+        if (($row["status"] ?? "active") === "temp_banned") {
+            if (!empty($row["ban_expires_at"]) && strtotime($row["ban_expires_at"]) > time()) {
+                clearRememberTokenCookie();
+                return;
+            }
+        }
+
+        loginUserToSession([
+            "id" => $row["id"],
+            "name" => $row["name"],
+            "email" => $row["email"],
+            "role" => $row["role"],
+        ]);
+
+        $newValidator = bin2hex(random_bytes(32));
+        $newTokenHash = hash('sha256', $newValidator);
+        $newExpiresAt = date('Y-m-d H:i:s', time() + (60 * 60 * 24 * 30));
+
+        $stmt = $pdo->prepare("
+            UPDATE remember_tokens
+            SET token_hash = ?,
+                expires_at = ?,
+                last_used_at = NOW()
+            WHERE selector = ?
+        ");
+        $stmt->execute([$newTokenHash, $newExpiresAt, $selector]);
+
+        $isHttps = (
+            (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || (($_SERVER['SERVER_PORT'] ?? null) == 443)
+        );
+
+        setcookie('remember_me', $selector . ':' . $newValidator, [
+            'expires' => time() + (60 * 60 * 24 * 30),
+            'path' => '/',
+            'secure' => $isHttps,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
+    }
+}

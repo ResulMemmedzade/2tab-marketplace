@@ -193,6 +193,55 @@ body {
     padding: 40px;
     text-align: center;
 }
+.page-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.page-title h1 {
+    margin: 0;
+}
+
+.notification-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #f3efe9;
+    color: #c4704b;
+    border: 1px solid #e5dfd6;
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(45, 42, 38, 0.04);
+    white-space: nowrap;
+}
+
+.notification-btn:hover {
+    background: #e8e2d9;
+    color: #b5613c;
+    transform: translateY(-1px);
+}
+
+.notification-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 1.8;
+    flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+    .notification-btn {
+        padding: 9px 11px;
+        font-size: 13px;
+    }
+}
 </style>
 </head>
 
@@ -200,9 +249,16 @@ body {
 <?php require_once __DIR__ . '/includes/topbar.php'; ?>
 
 <div class="container">
-    <div class="page-title">
-        <h1>Mesajlar</h1>
-    </div>
+<div class="page-title">
+    <h1>Mesajlar</h1>
+
+    <a href="<?= e(basePath('notifications.php')) ?>" class="notification-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0018 9.75V9a6 6 0 10-12 0v.75a8.967 8.967 0 00-2.312 6.022c1.733.64 3.56 1.081 5.454 1.31m5.715 0a24.255 24.255 0 01-5.715 0m5.715 0a3 3 0 11-5.715 0" />
+        </svg>
+        <span>Bildirişləri aktiv et</span>
+    </a>
+</div>
 
     <?php if (count($conversations) > 0): ?>
         <div class="chat-list">

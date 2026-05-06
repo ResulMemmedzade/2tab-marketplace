@@ -302,7 +302,19 @@ $stmt->execute([$conversationId, $currentUserId]);
             display: flex;
             align-items: center;
         }
+        .message-check .single-check,
+.message-check .double-check {
+    display: inline-flex;
+    align-items: center;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+}
 
+.message-check .double-check {
+    gap: 0;
+    margin-left: -2px;
+}
         .message-check svg {
             width: 14px;
             height: 14px;
@@ -838,15 +850,11 @@ $stmt->execute([$conversationId, $currentUserId]);
                                 <span class="message-time"><?= e(formatRelativeTime($msg["created_at"] ?? "")) ?></span>
                                 <?php if ($isMine): ?>
                                     <span class="message-check">
-                                        <?php if ($isRead): ?>
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5M9 12.75l3 3" />
-                                            </svg>
-                                        <?php else: ?>
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                            </svg>
-                                        <?php endif; ?>
+                                    <?php if ($isRead): ?>
+    <span class="double-check">✓✓</span>
+<?php else: ?>
+    <span class="single-check">✓</span>
+<?php endif; ?>
                                     </span>
                                 <?php endif; ?>
                             </div>
@@ -1119,8 +1127,17 @@ function bindAllLongPress() {
     document.querySelectorAll(".message-bubble").forEach(bindLongPressToBubble);
 }
 
-const checkSvgSingle = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>`;
+const checkSvgSingle = `<span class="single-check">✓</span>`;
+const checkSvgDouble = `<span class="double-check">✓✓</span>`;
+let lastMessageId = 0;
+let isFetchingMessages = false;
 
+document.querySelectorAll(".message-bubble").forEach(function (bubble) {
+    const currentId = parseInt(bubble.dataset.messageId || "0", 10);
+    if (currentId > lastMessageId) {
+        lastMessageId = currentId;
+    }
+});
 function appendMessage(messageText, timeText, messageId = "", canEdit = true) {
     if (!chatMessages) return;
 
@@ -1205,7 +1222,125 @@ function appendImageMessage(imageUrl, timeText, messageId = "") {
     bindLongPressToBubble(bubble);
     scrollToBottom(true);
 }
+function appendIncomingMessage(item) {
+    if (!chatMessages || !item) return;
 
+    removeEmptyChat();
+
+    const row = document.createElement("div");
+    row.className = item.is_mine ? "message-row mine" : "message-row other";
+
+    const bubble = document.createElement("div");
+    bubble.className = item.message_type === "image"
+        ? "message-bubble image-bubble"
+        : "message-bubble";
+
+    bubble.dataset.messageId = item.id || "";
+    bubble.dataset.messageType = item.message_type || "text";
+    bubble.dataset.canEdit = item.is_mine && item.message_type === "text" && Number(item.is_read) !== 1 ? "1" : "0";
+    bubble.dataset.canDelete = item.is_mine ? "1" : "0";
+
+    if (item.message_type === "image") {
+        const img = document.createElement("img");
+        img.src = item.image_url || "";
+        img.className = "chat-image js-full-image";
+        img.alt = "Göndərilən şəkil";
+        bubble.appendChild(img);
+    } else {
+        const text = document.createElement("div");
+        text.className = "message-text";
+        text.innerHTML = nl2br(item.message || "");
+        bubble.appendChild(text);
+    }
+
+    const footer = document.createElement("div");
+    footer.className = "message-footer";
+
+    let checkHtml = "";
+    if (item.is_mine) {
+        checkHtml = Number(item.is_read) === 1 ? checkSvgDouble : checkSvgSingle;
+    }
+
+    footer.innerHTML = `
+        <span class="message-time">${escapeHtml(item.time || "indi")}</span>
+        ${item.is_mine ? `<span class="message-check">${checkHtml}</span>` : ""}
+    `;
+
+    bubble.appendChild(footer);
+    row.appendChild(bubble);
+    chatMessages.appendChild(row);
+
+    bindLongPressToBubble(bubble);
+
+    const currentId = parseInt(item.id || "0", 10);
+    if (currentId > lastMessageId) {
+        lastMessageId = currentId;
+    }
+
+    scrollToBottom();
+}
+
+function updateReadStatuses(readStatuses) {
+    if (!Array.isArray(readStatuses)) return;
+
+    readStatuses.forEach(function (status) {
+        const bubble = document.querySelector(`.message-bubble[data-message-id="${status.id}"]`);
+        if (!bubble) return;
+
+        const check = bubble.querySelector(".message-check");
+        if (!check) return;
+
+        check.innerHTML = Number(status.is_read) === 1 ? checkSvgDouble : checkSvgSingle;
+
+        if (Number(status.is_read) === 1) {
+            bubble.dataset.canEdit = "0";
+
+            const editBox = bubble.querySelector(".edit-box");
+            if (editBox) {
+                editBox.remove();
+            }
+        }
+    });
+}
+
+async function fetchMessages() {
+    if (isFetchingMessages) return;
+
+    isFetchingMessages = true;
+
+    try {
+        const response = await fetch(
+            `<?= e(basePath('fetch_messages.php')) ?>?conversation_id=${encodeURIComponent(conversationId)}&after_id=${encodeURIComponent(lastMessageId)}`,
+            {
+                method: "GET",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest"
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        if (response.ok && data && data.success) {
+            if (Array.isArray(data.messages)) {
+                data.messages.forEach(function (item) {
+                    const exists = document.querySelector(`.message-bubble[data-message-id="${item.id}"]`);
+                    if (!exists) {
+                        appendIncomingMessage(item);
+                    }
+                });
+            }
+
+            updateReadStatuses(data.read_statuses || []);
+        }
+    } catch (e) {
+        // Silent fail: live chat problem should not break normal chat.
+    } finally {
+        isFetchingMessages = false;
+    }
+}
+
+setInterval(fetchMessages, 2000);
 function clearImagePreview() {
     selectedImageFile = null;
 
@@ -1349,8 +1484,7 @@ async function sendSelectedImage() {
             data = null;
         }
 
-        if (response.ok) {
-            const imageUrl = data && data.image_url ? data.image_url : localPreviewUrl;
+        if (response.ok && data && data.success) {            const imageUrl = data && data.image_url ? data.image_url : localPreviewUrl;
             const messageId = data && data.message_id ? data.message_id : "";
 
             appendImageMessage(imageUrl, "indi", messageId);
@@ -1505,7 +1639,22 @@ if (messageInput) {
         hideError();
     });
 }
+function isMobileDevice() {
+    return window.matchMedia("(max-width: 768px)").matches;
+}
 
+if (messageInput) {
+    messageInput.addEventListener("keydown", function (event) {
+        if (isMobileDevice()) {
+            return;
+        }
+
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+}
 if (sendBtn) {
     sendBtn.addEventListener("click", function (event) {
         event.preventDefault();

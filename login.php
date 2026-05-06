@@ -108,12 +108,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                     clearRateLimit($pdo, $rateKey);
                     unset($_SESSION['rate_limit_notice'][$rateKey]);
         
-                    session_regenerate_id(true);
-        
-                    $_SESSION["user_id"] = (int)$user["id"];
-                    $_SESSION["name"] = $user["name"];
-                    $_SESSION["email"] = $user["email"];
-                    $_SESSION["role"] = $user["role"];
+                    loginUserToSession($user);
+createRememberToken($pdo, (int)$user["id"]);
         
                     redirectTo("dashboard.php");
                 }
@@ -123,12 +119,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 clearRateLimit($pdo, $rateKey);
                 unset($_SESSION['rate_limit_notice'][$rateKey]);
         
-                session_regenerate_id(true);
-        
-                $_SESSION["user_id"] = (int)$user["id"];
-                $_SESSION["name"] = $user["name"];
-                $_SESSION["email"] = $user["email"];
-                $_SESSION["role"] = $user["role"];
+                loginUserToSession($user);
+createRememberToken($pdo, (int)$user["id"]);
         
                 appLog('login_success', 'User logged in successfully', [
                     'user_id' => $user["id"],
