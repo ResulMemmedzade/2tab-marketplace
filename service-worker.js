@@ -13,8 +13,8 @@ self.addEventListener("push", function (event) {
 
     const options = {
         body: data.body || "Yeni bildirişiniz var.",
-        icon: "/assets/icons/push-icon.png",
-badge: "/assets/icons/push-icon.png",
+        icon: "assets/icons/logo.png",
+badge: "assets/icons/logo.png",
         data: {
             url: data.url || "/"
         }
