@@ -143,13 +143,13 @@ try {
             ? mb_substr($message, 0, 80) . "..."
             : $message;
 
-        sendPushNotificationToUser(
-            $pdo,
-            $receiverId,
-            "Yeni mesaj - " . $senderName,
-            $notificationBody,
-            basePath("conversation.php?id=" . $conversationId)
-        );
+            sendPushNotificationToUser(
+                $pdo,
+                $receiverId,
+                $_SESSION["name"] ?? "2tab",
+                mb_substr($message, 0, 120),
+                "/conversation.php?id=" . $conversationId
+            );
     }
 
     appLog('chat_action', 'Message sent successfully', [

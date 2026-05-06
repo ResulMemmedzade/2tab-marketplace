@@ -4,6 +4,11 @@ require_once __DIR__ . '/config.php';
 requireLogin();
 
 $pageTitle = 'Bildirişlər';
+$redirectAfter = 'dashboard.php';
+
+if (($_GET['from'] ?? '') === 'messages') {
+    $redirectAfter = 'messages.php';
+}
 ?>
 <!DOCTYPE html>
 <html lang="az">

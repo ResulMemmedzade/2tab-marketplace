@@ -85,9 +85,9 @@ try {
         sendPushNotificationToUser(
             $pdo,
             $receiverId,
-            "Yeni şəkil - " . $senderName,
-            "Sizə yeni şəkil göndərildi.",
-            basePath("conversation.php?id=" . $conversationId)
+            $_SESSION["name"] ?? "2tab",
+            "Şəkil göndərdi",
+            "/conversation.php?id=" . $conversationId
         );
     }
 
