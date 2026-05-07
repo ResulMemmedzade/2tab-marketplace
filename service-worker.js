@@ -1,3 +1,5 @@
+const SW_VERSION = "v16";
+
 self.addEventListener("push", function (event) {
     let data = {
         title: "2tab",
@@ -13,7 +15,13 @@ self.addEventListener("push", function (event) {
 
     const options = {
         body: data.body || "Yeni bildirişiniz var.",
-        icon: "/assets/icons/notification-icon.png",
+
+        // Notification üçün əsas icon
+        icon: "https://2tab.store/assets/icons/notification-icon-192.png?v=16",
+
+        // Hələlik badge qoymuruq, çünki ağ kvadrat problemi yaradırdı
+        // badge: "https://2tab.store/assets/icons/notification-badge.png?v=16",
+
         data: {
             url: data.url || "/"
         }
