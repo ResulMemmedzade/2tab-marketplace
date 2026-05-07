@@ -12,12 +12,9 @@ self.addEventListener("push", function (event) {
     }
 
     const options = {
-        body: data.body || "Yeni bildirişiniz var.",
-        icon: "/assets/icons/notification-icon.png",  // ✅ bəs
-        data: {
-            url: data.url || "/"
-        }
-    };
+    body: "Test",
+    icon: "/assets/icons/notification-icon.png"
+};
 
     event.waitUntil(
         self.registration.showNotification(data.title || "2tab", options)
